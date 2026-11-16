@@ -1,0 +1,338 @@
+﻿<UserControl x:Class="Yamb.Presentation.Wpf.Views.SettingsView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             FontFamily="Segoe UI">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <StackPanel Grid.Row="0">
+            <TextBlock Text="{DynamicResource L.Settings.Eyebrow}"
+                       FontSize="11"
+                       FontWeight="Bold"
+                       Foreground="{DynamicResource MutedTextBrush}" />
+            <TextBlock Text="{DynamicResource L.Settings.Title}"
+                       FontSize="30"
+                       FontWeight="Bold"
+                       Foreground="{DynamicResource TextBrush}"
+                       Margin="0,8,0,0" />
+            <TextBlock Text="{DynamicResource L.Settings.Subtitle}"
+                       FontSize="12.5"
+                       Foreground="{DynamicResource MutedTextBrush}"
+                       Margin="0,6,0,0" />
+        </StackPanel>
+
+        <Grid Grid.Row="1" Margin="0,22,0,0" VerticalAlignment="Top">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="1.05*" />
+                <ColumnDefinition Width="20" />
+                <ColumnDefinition Width="1*" />
+            </Grid.ColumnDefinitions>
+
+            <Border Grid.Column="0"
+                    Background="{DynamicResource PanelBrush}"
+                    BorderBrush="{DynamicResource BorderBrush}"
+                    BorderThickness="1"
+                    CornerRadius="18"
+                    Padding="26,22"
+                    Effect="{StaticResource CardShadow}">
+                <StackPanel>
+                    <TextBlock Text="{DynamicResource L.Settings.Theme}"
+                               FontSize="11"
+                               FontWeight="Bold"
+                               Foreground="{DynamicResource MutedTextBrush}" />
+
+                    <Grid Margin="0,14,0,0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="12" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+
+                        <RadioButton x:Name="ThemeDarkRadio"
+                                     Grid.Column="0"
+                                     GroupName="Theme"
+                                     Checked="OnThemeChanged"
+                                     Style="{StaticResource ModeCardStyle}"
+                                     AutomationProperties.AutomationId="ThemeDark">
+                            <StackPanel Orientation="Horizontal">
+                                <Border Width="30"
+                                        Height="30"
+                                        CornerRadius="9"
+                                        Background="{DynamicResource ThemeDarkPreviewBrush}"
+                                        BorderBrush="{DynamicResource ThemeDarkPreviewBorderBrush}"
+                                        BorderThickness="1"
+                                        VerticalAlignment="Center" />
+                                <StackPanel Margin="12,0,0,0" VerticalAlignment="Center">
+                                    <TextBlock Text="{DynamicResource L.Settings.ThemeDark}" FontSize="14" FontWeight="SemiBold" />
+                                    <TextBlock Text="{DynamicResource L.Settings.ThemeDarkSubtitle}"
+                                               FontSize="11"
+                                               Foreground="{DynamicResource MutedTextBrush}" />
+                                </StackPanel>
+                            </StackPanel>
+                        </RadioButton>
+
+                        <RadioButton x:Name="ThemeLightRadio"
+                                     Grid.Column="2"
+                                     GroupName="Theme"
+                                     Checked="OnThemeChanged"
+                                     Style="{StaticResource ModeCardStyle}"
+                                     AutomationProperties.AutomationId="ThemeLight">
+                            <StackPanel Orientation="Horizontal">
+                                <Border Width="30"
+                                        Height="30"
+                                        CornerRadius="9"
+                                        Background="{DynamicResource ThemeLightPreviewBrush}"
+                                        BorderBrush="{DynamicResource ThemeLightPreviewBorderBrush}"
+                                        BorderThickness="1"
+                                        VerticalAlignment="Center" />
+                                <StackPanel Margin="12,0,0,0" VerticalAlignment="Center">
+                                    <TextBlock Text="{DynamicResource L.Settings.ThemeLight}" FontSize="14" FontWeight="SemiBold" />
+                                    <TextBlock Text="{DynamicResource L.Settings.ThemeLightSubtitle}"
+                                               FontSize="11"
+                                               Foreground="{DynamicResource MutedTextBrush}" />
+                                </StackPanel>
+                            </StackPanel>
+                        </RadioButton>
+                    </Grid>
+
+                    <Border Height="1"
+                            Background="{DynamicResource BorderBrush}"
+                            Margin="0,20,0,18" />
+
+                    <TextBlock Text="{DynamicResource L.Settings.Face}"
+                               FontSize="11"
+                               FontWeight="Bold"
+                               Foreground="{DynamicResource MutedTextBrush}" />
+
+                    <RadioButton x:Name="PipsRadio"
+                                 IsChecked="True"
+                                 GroupName="DiceFace"
+                                 Margin="0,16,0,0"
+                                 Checked="OnFaceStyleChanged"
+                                 AutomationProperties.AutomationId="FacePips">
+                        <StackPanel Margin="2,0,0,0">
+                            <TextBlock Text="{DynamicResource L.Settings.Pips}" FontSize="14.5" FontWeight="SemiBold" />
+                            <TextBlock Text="{DynamicResource L.Settings.PipsSubtitle}"
+                                       FontSize="11.5"
+                                       Foreground="{DynamicResource MutedTextBrush}"
+                                       Margin="0,2,0,0" />
+                        </StackPanel>
+                    </RadioButton>
+
+                    <RadioButton x:Name="NumbersRadio"
+                                 GroupName="DiceFace"
+                                 Margin="0,16,0,0"
+                                 Checked="OnFaceStyleChanged"
+                                 AutomationProperties.AutomationId="FaceNumbers">
+                        <StackPanel Margin="2,0,0,0">
+                            <TextBlock Text="{DynamicResource L.Settings.Numbers}" FontSize="14.5" FontWeight="SemiBold" />
+                            <TextBlock Text="{DynamicResource L.Settings.NumbersSubtitle}"
+                                       FontSize="11.5"
+                                       Foreground="{DynamicResource MutedTextBrush}"
+                                       Margin="0,2,0,0" />
+                        </StackPanel>
+                    </RadioButton>
+
+                    <RadioButton x:Name="RomanRadio"
+                                 GroupName="DiceFace"
+                                 Margin="0,16,0,0"
+                                 Checked="OnFaceStyleChanged"
+                                 AutomationProperties.AutomationId="FaceRoman">
+                        <StackPanel Margin="2,0,0,0">
+                            <TextBlock Text="{DynamicResource L.Settings.Roman}" FontSize="14.5" FontWeight="SemiBold" />
+                            <TextBlock Text="{DynamicResource L.Settings.RomanSubtitle}"
+                                       FontSize="11.5"
+                                       Foreground="{DynamicResource MutedTextBrush}"
+                                       Margin="0,2,0,0" />
+                        </StackPanel>
+                    </RadioButton>
+
+                    <Border Height="1"
+                            Background="{DynamicResource BorderBrush}"
+                            Margin="0,20,0,18" />
+
+                    <TextBlock Text="{DynamicResource L.Settings.Language}"
+                               FontSize="11"
+                               FontWeight="Bold"
+                               Foreground="{DynamicResource MutedTextBrush}" />
+
+                    <Grid Margin="0,12,0,0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="12" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+
+                        <RadioButton x:Name="LanguageSerbianRadio"
+                                     Grid.Column="0"
+                                     GroupName="Language"
+                                     Content="Srpski"
+                                     FontSize="13"
+                                     Checked="OnLanguageChanged"
+                                     AutomationProperties.AutomationId="LanguageSerbian" />
+
+                        <RadioButton x:Name="LanguageEnglishRadio"
+                                     Grid.Column="2"
+                                     GroupName="Language"
+                                     Content="English"
+                                     FontSize="13"
+                                     Checked="OnLanguageChanged"
+                                     AutomationProperties.AutomationId="LanguageEnglish" />
+                    </Grid>
+
+                    <TextBlock Text="{DynamicResource L.Settings.AutoCalculate}"
+                               FontSize="11"
+                               FontWeight="Bold"
+                               Foreground="{DynamicResource MutedTextBrush}"
+                               Margin="0,20,0,0" />
+
+                    <CheckBox x:Name="AutoCalculateCheck"
+                              Margin="0,10,0,0"
+                              Checked="OnAutoCalculateChanged"
+                              Unchecked="OnAutoCalculateChanged"
+                              AutomationProperties.AutomationId="AutoCalculate">
+                        <TextBlock Text="{DynamicResource L.Settings.AutoCalculateOption}"
+                                   TextWrapping="Wrap"
+                                   FontSize="12"
+                                   Foreground="{DynamicResource MutedTextBrush}" />
+                    </CheckBox>
+                </StackPanel>
+            </Border>
+
+            <Border Grid.Column="2"
+                    Background="{DynamicResource PanelBrush}"
+                    BorderBrush="{DynamicResource BorderBrush}"
+                    BorderThickness="1"
+                    CornerRadius="18"
+                    Padding="26,22"
+                    Effect="{StaticResource CardShadow}">
+                <StackPanel>
+                    <TextBlock Text="{DynamicResource L.Settings.DiceCount}"
+                               FontSize="11"
+                               FontWeight="Bold"
+                               Foreground="{DynamicResource MutedTextBrush}" />
+
+                    <Grid Margin="0,12,0,0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="12" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+
+                        <RadioButton x:Name="DiceFiveRadio"
+                                     Grid.Column="0"
+                                     GroupName="DiceCount"
+                                     Style="{StaticResource ModeCardStyle}"
+                                     Checked="OnDiceCountChanged"
+                                     AutomationProperties.AutomationId="DiceFive">
+                            <StackPanel Orientation="Horizontal"
+                                        HorizontalAlignment="Center"
+                                        VerticalAlignment="Center">
+                                <TextBlock Text="{DynamicResource L.Settings.DiceFive}"
+                                           FontSize="22"
+                                           FontWeight="Bold"
+                                           Foreground="{DynamicResource AccentBrush}" />
+                                <TextBlock Text="{DynamicResource L.Settings.DiceUnit}"
+                                           FontSize="13"
+                                           FontWeight="SemiBold"
+                                           Margin="8,0,0,0"
+                                           VerticalAlignment="Center" />
+                            </StackPanel>
+                        </RadioButton>
+
+                        <RadioButton x:Name="DiceSixRadio"
+                                     Grid.Column="2"
+                                     GroupName="DiceCount"
+                                     Style="{StaticResource ModeCardStyle}"
+                                     Checked="OnDiceCountChanged"
+                                     AutomationProperties.AutomationId="DiceSix">
+                            <StackPanel Orientation="Horizontal"
+                                        HorizontalAlignment="Center"
+                                        VerticalAlignment="Center">
+                                <TextBlock Text="{DynamicResource L.Settings.DiceSix}"
+                                           FontSize="22"
+                                           FontWeight="Bold"
+                                           Foreground="{DynamicResource AccentBrush}" />
+                                <TextBlock Text="{DynamicResource L.Settings.DiceUnit}"
+                                           FontSize="13"
+                                           FontWeight="SemiBold"
+                                           Margin="8,0,0,0"
+                                           VerticalAlignment="Center" />
+                            </StackPanel>
+                        </RadioButton>
+                    </Grid>
+
+                    <Border Height="1"
+                            Background="{DynamicResource BorderBrush}"
+                            Margin="0,20,0,18" />
+
+                    <Grid>
+                        <TextBlock Text="{DynamicResource L.Settings.Size}"
+                                   FontSize="11"
+                                   FontWeight="Bold"
+                                   Foreground="{DynamicResource MutedTextBrush}"
+                                   VerticalAlignment="Center" />
+                        <TextBlock x:Name="SizeText"
+                                   FontSize="12"
+                                   FontWeight="SemiBold"
+                                   Foreground="{DynamicResource AccentBrush}"
+                                   HorizontalAlignment="Right"
+                                   VerticalAlignment="Center" />
+                    </Grid>
+
+                    <Slider x:Name="SizeSlider"
+                            Minimum="36"
+                            Maximum="72"
+                            TickFrequency="2"
+                            IsSnapToTickEnabled="True"
+                            Value="54"
+                            Margin="0,14,0,0"
+                            ValueChanged="OnSizeChanged"
+                            AutomationProperties.AutomationId="DieSizeSlider" />
+
+                    <Border Background="{DynamicResource SurfaceAltBrush}"
+                            BorderBrush="{DynamicResource BorderBrush}"
+                            BorderThickness="1"
+                            CornerRadius="14"
+                            Height="132"
+                            Margin="0,20,0,0">
+                        <WrapPanel x:Name="PreviewPanel"
+                                   HorizontalAlignment="Center"
+                                   VerticalAlignment="Center" />
+                    </Border>
+
+                    <TextBlock Text="{DynamicResource L.Settings.Preview}"
+                               FontSize="11.5"
+                               Foreground="{DynamicResource MutedTextBrush}"
+                               Margin="0,12,0,0" />
+
+                    <Border Background="{DynamicResource AccentSoftBrush}"
+                            BorderBrush="{DynamicResource BorderBrush}"
+                            BorderThickness="1"
+                            CornerRadius="12"
+                            Padding="14,10"
+                            Margin="0,16,0,0">
+                        <TextBlock TextWrapping="Wrap"
+                                   FontSize="12"
+                                   Foreground="{DynamicResource MutedTextBrush}"
+                                   Text="{DynamicResource L.Settings.StraightInfo}" />
+                    </Border>
+                </StackPanel>
+            </Border>
+        </Grid>
+
+        <StackPanel Grid.Row="2"
+                    Orientation="Horizontal"
+                    HorizontalAlignment="Right"
+                    Margin="0,20,0,0">
+            <Button Content="{DynamicResource L.Settings.Back}"
+                    Style="{StaticResource DialogButtonStyle}"
+                    Click="OnBackClick"
+                    AutomationProperties.AutomationId="SettingsBack" />
+        </StackPanel>
+    </Grid>
+</UserControl>

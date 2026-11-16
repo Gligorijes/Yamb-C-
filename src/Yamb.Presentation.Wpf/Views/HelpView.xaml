@@ -1,0 +1,120 @@
+﻿<UserControl x:Class="Yamb.Presentation.Wpf.Views.HelpView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             FontFamily="Segoe UI">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <StackPanel Grid.Row="0">
+            <TextBlock Text="{DynamicResource L.Help.Eyebrow}"
+                       FontSize="11"
+                       FontWeight="Bold"
+                       Foreground="{DynamicResource MutedTextBrush}" />
+            <TextBlock Text="{DynamicResource L.Help.Title}"
+                       FontSize="30"
+                       FontWeight="Bold"
+                       Foreground="{DynamicResource TextBrush}"
+                       Margin="0,8,0,0" />
+            <TextBlock Text="{DynamicResource L.Help.Subtitle}"
+                       FontSize="12.5"
+                       Foreground="{DynamicResource MutedTextBrush}"
+                       Margin="0,6,0,0" />
+        </StackPanel>
+
+        <Grid Grid.Row="1" Margin="0,22,0,0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="250" />
+                <ColumnDefinition Width="20" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+
+            <Border Grid.Column="0"
+                    Background="{DynamicResource PanelBrush}"
+                    BorderBrush="{DynamicResource BorderBrush}"
+                    BorderThickness="1"
+                    CornerRadius="18"
+                    Padding="14"
+                    VerticalAlignment="Top"
+                    Effect="{StaticResource CardShadow}">
+                <StackPanel>
+                    <TextBlock Text="{DynamicResource L.Help.Contents}"
+                               FontSize="11"
+                               FontWeight="Bold"
+                               Foreground="{DynamicResource MutedTextBrush}"
+                               Margin="6,4,0,12" />
+                    <StackPanel x:Name="TabPanel" />
+                    <Border Background="{DynamicResource AccentSoftBrush}"
+                            BorderBrush="{DynamicResource AccentBrush}"
+                            BorderThickness="1"
+                            CornerRadius="12"
+                            Padding="12,10"
+                            Margin="0,10,0,0">
+                        <StackPanel>
+                            <TextBlock Text="{DynamicResource L.Help.VersionLabel}"
+                                       FontSize="9.5"
+                                       FontWeight="Bold"
+                                       Foreground="{DynamicResource AccentBrush}" />
+                            <TextBlock x:Name="VersionText"
+                                       FontSize="11"
+                                       FontWeight="SemiBold"
+                                       Foreground="{DynamicResource TextBrush}"
+                                       TextWrapping="Wrap"
+                                       Margin="0,5,0,0"
+                                       AutomationProperties.AutomationId="HelpVersion" />
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+            </Border>
+
+            <Border Grid.Column="2"
+                    Background="{DynamicResource PanelBrush}"
+                    BorderBrush="{DynamicResource BorderBrush}"
+                    BorderThickness="1"
+                    CornerRadius="18"
+                    Padding="26,22"
+                    Effect="{StaticResource CardShadow}">
+                <ScrollViewer x:Name="PageScroll"
+                              VerticalScrollBarVisibility="Auto"
+                              HorizontalScrollBarVisibility="Disabled">
+                    <TextBlock x:Name="PageText"
+                               FontSize="14"
+                               LineHeight="26"
+                               Foreground="{DynamicResource TextBrush}"
+                               TextWrapping="Wrap" />
+                </ScrollViewer>
+            </Border>
+        </Grid>
+
+        <Grid Grid.Row="2" Margin="0,20,0,0">
+            <Button Content="{DynamicResource L.Help.Back}"
+                    HorizontalAlignment="Left"
+                    Style="{StaticResource DialogButtonStyle}"
+                    Click="OnBackClick"
+                    AutomationProperties.AutomationId="HelpBack" />
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                <Button Content="{DynamicResource L.Help.Previous}"
+                        Style="{StaticResource DialogButtonStyle}"
+                        Margin="0,0,12,0"
+                        Click="OnPrevClick"
+                        AutomationProperties.AutomationId="HelpPrev" />
+                <TextBlock x:Name="PageIndicator"
+                           Text="1/5"
+                           Foreground="{DynamicResource MutedTextBrush}"
+                           FontSize="13"
+                           FontWeight="SemiBold"
+                           VerticalAlignment="Center"
+                           Margin="0,0,14,0"
+                           AutomationProperties.AutomationId="HelpPage" />
+                <Button Content="{DynamicResource L.Help.Next}"
+                        Style="{StaticResource PrimaryButtonStyle}"
+                        Click="OnNextClick"
+                        AutomationProperties.AutomationId="HelpNext" />
+            </StackPanel>
+        </Grid>
+    </Grid>
+</UserControl>
+

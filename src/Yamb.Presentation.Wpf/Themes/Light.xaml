@@ -1,0 +1,69 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <SolidColorBrush x:Key="BgBrush" Color="#EAF2FC" />
+    <SolidColorBrush x:Key="PanelBrush" Color="#FFFFFF" />
+    <SolidColorBrush x:Key="SurfaceAltBrush" Color="#EFF5FC" />
+    <SolidColorBrush x:Key="ElevatedBrush" Color="#F6FAFF" />
+    <SolidColorBrush x:Key="HoverCellBrush" Color="#DCEBFB" />
+    <SolidColorBrush x:Key="AccentSoftBrush" Color="#DCEBFC" />
+    <SolidColorBrush x:Key="LabelBrush" Color="#DDEBFA" />
+    <SolidColorBrush x:Key="CellBrush" Color="#FFFFFF" />
+    <SolidColorBrush x:Key="SheetFrameBrush" Color="#C9DDF2" />
+    <SolidColorBrush x:Key="HeaderBandBrush" Color="#E1EFFD" />
+    <SolidColorBrush x:Key="SumBandBrush" Color="#D3E6FA" />
+    <SolidColorBrush x:Key="BorderBrush" Color="#C6D9ED" />
+    <SolidColorBrush x:Key="BorderStrongBrush" Color="#93B6D9" />
+    <SolidColorBrush x:Key="TextBrush" Color="#10243D" />
+    <SolidColorBrush x:Key="MutedTextBrush" Color="#526C89" />
+    <SolidColorBrush x:Key="AccentBrush" Color="#1F6FEB" />
+    <SolidColorBrush x:Key="AccentHoverBrush" Color="#3B82F6" />
+    <SolidColorBrush x:Key="AccentPressedBrush" Color="#1557C0" />
+    <SolidColorBrush x:Key="OnAccentBrush" Color="#FFFFFF" />
+    <SolidColorBrush x:Key="HeroSubtitleBrush" Color="#D8E8FF" />
+    <SolidColorBrush x:Key="HeroOverlayBrush" Color="#22000000" />
+    <SolidColorBrush x:Key="RedBrush" Color="#C92A48" />
+    <SolidColorBrush x:Key="DangerBrush" Color="#C92A48" />
+    <SolidColorBrush x:Key="BlueBrush" Color="#2456A6" />
+    <SolidColorBrush x:Key="GreenBrush" Color="#0B7A55" />
+    <SolidColorBrush x:Key="CyanBrush" Color="#0A6E86" />
+    <SolidColorBrush x:Key="WarningBrush" Color="#9A6008" />
+    <SolidColorBrush x:Key="AnnouncedBrush" Color="#FCE0E7" />
+    <SolidColorBrush x:Key="PopupShadeBrush" Color="#66000A14" />
+    <SolidColorBrush x:Key="TransparentBrush" Color="Transparent" />
+    <SolidColorBrush x:Key="ThemeDarkPreviewBrush" Color="#1D1913" />
+    <SolidColorBrush x:Key="ThemeDarkPreviewBorderBrush" Color="#5A4B36" />
+    <SolidColorBrush x:Key="ThemeLightPreviewBrush" Color="#EAF2FC" />
+    <SolidColorBrush x:Key="ThemeLightPreviewBorderBrush" Color="#93B6D9" />
+
+    <SolidColorBrush x:Key="DieMagentaBrush" Color="#C23BB5" />
+    <SolidColorBrush x:Key="DieYellowBrush" Color="#D99A13" />
+    <SolidColorBrush x:Key="DieBlueBrush" Color="#2F6FD0" />
+    <SolidColorBrush x:Key="DieGreenBrush" Color="#199969" />
+    <SolidColorBrush x:Key="DieRedBrush" Color="#D74747" />
+    <SolidColorBrush x:Key="DieWhiteBrush" Color="#FFFFFF" />
+
+    <DropShadowEffect x:Key="AccentGlow" Color="#1F6FEB" BlurRadius="22" ShadowDepth="0" Opacity="0.32" />
+
+    <LinearGradientBrush x:Key="AppBackgroundBrush" StartPoint="0,0" EndPoint="1,1">
+        <GradientStop Color="#F8FBFF" Offset="0" />
+        <GradientStop Color="#EAF2FC" Offset="0.55" />
+        <GradientStop Color="#DCEBFA" Offset="1" />
+    </LinearGradientBrush>
+
+    <RadialGradientBrush x:Key="GlowBrush" GradientOrigin="0.5,0.5" Center="0.5,0.5" RadiusX="0.5" RadiusY="0.5">
+        <GradientStop Color="#331F6FEB" Offset="0" />
+        <GradientStop Color="#001F6FEB" Offset="1" />
+    </RadialGradientBrush>
+
+    <LinearGradientBrush x:Key="ActiveBarBrush" StartPoint="0,0" EndPoint="1,0">
+        <GradientStop Color="#2F7BF5" Offset="0" />
+        <GradientStop Color="#1557C0" Offset="1" />
+    </LinearGradientBrush>
+
+    <LinearGradientBrush x:Key="AccentButtonBrush" StartPoint="0,0" EndPoint="1,1">
+        <GradientStop Color="#3B82F6" Offset="0" />
+        <GradientStop Color="#1F5FD0" Offset="1" />
+    </LinearGradientBrush>
+
+</ResourceDictionary>

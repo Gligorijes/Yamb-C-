@@ -1,0 +1,108 @@
+﻿<UserControl x:Class="Yamb.Presentation.Wpf.Views.LeaderboardView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             FontFamily="Segoe UI">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <StackPanel Grid.Row="0">
+            <TextBlock Text="{DynamicResource L.Leaderboard.Eyebrow}"
+                       FontSize="11"
+                       FontWeight="Bold"
+                       Foreground="{DynamicResource MutedTextBrush}" />
+            <TextBlock Text="{DynamicResource L.Leaderboard.Title}"
+                       FontSize="30"
+                       FontWeight="Bold"
+                       Foreground="{DynamicResource TextBrush}"
+                       Margin="0,8,0,0" />
+            <TextBlock Text="{DynamicResource L.Leaderboard.Subtitle}"
+                       FontSize="12.5"
+                       Foreground="{DynamicResource MutedTextBrush}"
+                       Margin="0,6,0,0" />
+        </StackPanel>
+
+        <Grid Grid.Row="1" Margin="16,22,16,8">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="70" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="100" />
+                <ColumnDefinition Width="130" />
+            </Grid.ColumnDefinitions>
+            <TextBlock Text="{DynamicResource L.Leaderboard.Rank}" Grid.Column="0" FontSize="11" FontWeight="Bold"
+                       Foreground="{DynamicResource MutedTextBrush}" />
+            <TextBlock Text="{DynamicResource L.Leaderboard.Players}" Grid.Column="1" FontSize="11" FontWeight="Bold"
+                       Foreground="{DynamicResource MutedTextBrush}" />
+            <TextBlock Text="{DynamicResource L.Leaderboard.Score}" Grid.Column="2" FontSize="11" FontWeight="Bold"
+                       Foreground="{DynamicResource MutedTextBrush}" HorizontalAlignment="Right" />
+            <TextBlock Text="{DynamicResource L.Leaderboard.Date}" Grid.Column="3" FontSize="11" FontWeight="Bold"
+                       Foreground="{DynamicResource MutedTextBrush}" HorizontalAlignment="Right" />
+        </Grid>
+
+        <Border Grid.Row="2"
+                Background="{DynamicResource PanelBrush}"
+                BorderBrush="{DynamicResource BorderBrush}"
+                BorderThickness="1"
+                CornerRadius="18"
+                Padding="12,10"
+                Effect="{StaticResource CardShadow}">
+            <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                <StackPanel x:Name="RowsPanel" />
+            </ScrollViewer>
+        </Border>
+
+        <Grid Grid.Row="3" Margin="0,20,0,0">
+            <Button Content="{DynamicResource L.Leaderboard.Back}"
+                    HorizontalAlignment="Left"
+                    Style="{StaticResource DialogButtonStyle}"
+                    Click="OnBackClick"
+                    AutomationProperties.AutomationId="LeaderboardBack" />
+            <Button Content="{DynamicResource L.Leaderboard.Clear}"
+                    HorizontalAlignment="Right"
+                    Style="{StaticResource DialogButtonStyle}"
+                    Click="OnClearClick"
+                    AutomationProperties.AutomationId="LeaderboardClear" />
+        </Grid>
+
+        <Grid x:Name="PopupOverlay"
+              Grid.RowSpan="4"
+              Visibility="Collapsed"
+              Background="{DynamicResource PopupShadeBrush}">
+            <Border Style="{StaticResource PopupPanelStyle}"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center">
+                <StackPanel>
+                    <TextBlock Text="{DynamicResource L.Leaderboard.ClearTitle}"
+                               FontSize="18"
+                               FontWeight="Bold"
+                               Foreground="{DynamicResource TextBrush}"
+                               HorizontalAlignment="Center" />
+                    <TextBlock x:Name="PopupText"
+                               FontSize="14"
+                               Foreground="{DynamicResource MutedTextBrush}"
+                               TextWrapping="Wrap"
+                               TextAlignment="Center"
+                               Margin="0,10,0,0" />
+                    <StackPanel Orientation="Horizontal"
+                                HorizontalAlignment="Center"
+                                Margin="0,20,0,0">
+                        <Button Content="{DynamicResource L.Leaderboard.No}"
+                                Style="{StaticResource DialogButtonStyle}"
+                                Margin="0,0,12,0"
+                                Click="OnClearCancelled"
+                                AutomationProperties.AutomationId="ClearNo" />
+                        <Button Content="{DynamicResource L.Leaderboard.Yes}"
+                                Style="{StaticResource PrimaryButtonStyle}"
+                                Click="OnClearConfirmed"
+                                AutomationProperties.AutomationId="ClearYes" />
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+        </Grid>
+    </Grid>
+</UserControl>
+
