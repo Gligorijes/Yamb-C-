@@ -1,16 +1,45 @@
 # Yamb
 
+[![CI](https://github.com/Gligorijes/Yamb-C-/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/Gligorijes/Yamb-C-/actions/workflows/ci.yml)
+
 A modern Windows implementation of the Balkan dice game **Yamb**, built with .NET 8 and WPF.
+
+![Yamb game view](docs/screenshots/06-game-light.png)
 
 ## Features
 
 - Single-player and local two-player games.
 - 4 to 10 score columns, with 5 or 6 dice.
 - Automatic and manual scoring modes.
+- Manual announcement confirmation after the third roll.
+- Saved-game chooser with player summaries, progress, continue and delete actions.
+- Local top-50 leaderboard with a separate entry for each player.
 - Cream dark theme and blue light theme.
 - Serbian and English interface.
-- Saved games, local leaderboard, detailed rules and version history.
+- Keyboard shortcuts, F1 help and searchable rules.
 - Pips, numbers and Roman-numeral dice faces.
+- Special celebration for a handwritten Jamb in the Hand column.
+
+## Screenshots
+
+| Menu | Saved games |
+| --- | --- |
+| ![Main menu](docs/screenshots/03-menu-light.png) | ![Saved games](docs/screenshots/07-saved-games.png) |
+
+| Settings | Help and rules |
+| --- | --- |
+| ![Settings](docs/screenshots/05-settings-light.png) | ![Help](docs/screenshots/08-help-rules.png) |
+
+## Keyboard shortcuts
+
+| Key | Action |
+| --- | --- |
+| `R` or `Space` | Roll the dice |
+| `1` to `6` | Hold or release the matching die |
+| `Enter` | Write the announced cell after the third roll |
+| `F1` | Open Help on the columns page |
+
+Shortcuts are ignored while a dialog is open.
 
 ## Architecture
 
@@ -40,6 +69,21 @@ dotnet run --project src/Yamb.Presentation.Wpf/Yamb.Presentation.Wpf.csproj -c R
 ```powershell
 dotnet test YambGame.sln -c Release
 ```
+
+The GitHub Actions workflow runs the same build and test commands on `windows-latest`.
+
+## Development tools
+
+Build the Release configuration first, then run:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File tools/wpf-e2e-test.ps1
+powershell -ExecutionPolicy Bypass -File tools/wpf-screenshots.ps1
+```
+
+- `wpf-e2e-test.ps1` drives the real WPF app through UI Automation and checks the main flows. It temporarily backs up and then restores `%LOCALAPPDATA%\Yamb`.
+- `wpf-screenshots.ps1` regenerates the images in `docs/screenshots`, also restoring local data afterwards.
+- `wpf-visual-check.ps1` captures diagnostic screenshots and colour metrics for theme checks.
 
 ## Local data
 

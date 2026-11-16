@@ -188,6 +188,10 @@ public class EfGameRepositoryTests
         summaries[0].Id.Should().Be(game.Id);
         summaries[0].PlayerNames.Should().Be("Ana");
         summaries[0].Mode.Should().Be(GameMode.SinglePlayer);
+        summaries[0].ColumnCount.Should().Be(7);
+        summaries[0].DiceCount.Should().Be(6);
+        summaries[0].TotalCells.Should().Be(91);
+        summaries[0].Players.Should().ContainSingle().Which.Name.Should().Be("Ana");
     }
 
     [Fact]

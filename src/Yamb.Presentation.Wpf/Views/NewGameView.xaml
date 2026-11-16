@@ -332,18 +332,6 @@
                                  IsEnabled="False"
                                  AutomationProperties.AutomationId="Player2Name" />
                     </StackPanel>
-
-                    <Border Background="{DynamicResource SurfaceAltBrush}"
-                            BorderBrush="{DynamicResource BorderBrush}"
-                            BorderThickness="1"
-                            CornerRadius="12"
-                            Padding="14,10"
-                            Margin="0,18,0,0">
-                        <TextBlock Text="{DynamicResource L.New.Tip}"
-                                   FontSize="11.5"
-                                   Foreground="{DynamicResource MutedTextBrush}"
-                                   TextWrapping="Wrap" />
-                    </Border>
                 </StackPanel>
             </Border>
         </Grid>

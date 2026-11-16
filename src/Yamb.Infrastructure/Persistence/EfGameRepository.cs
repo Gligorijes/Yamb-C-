@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Yamb.Application.DTOs;
 using Yamb.Application.Interfaces;
 using Yamb.Domain.Aggregates;
+using Yamb.Domain.Exceptions;
 using Yamb.Domain.Rules;
 using Yamb.Domain.Snapshots;
 
@@ -64,10 +65,29 @@ public sealed class EfGameRepository : IGameRepository
         await _db.SaveChangesAsync();
     }
 
-    public async Task<IReadOnlyList<GameSummaryDto>> ListSummariesAsync() =>
-        await _db.SavedGames
+    public async Task<IReadOnlyList<GameSummaryDto>> ListSummariesAsync()
+    {
+        var rows = await _db.SavedGames
             .AsNoTracking()
             .OrderByDescending(g => g.SavedAt)
-            .Select(g => new GameSummaryDto(g.Id, g.Mode, g.PlayerNames, g.SavedAt))
+            .Select(g => new { g.SnapshotJson, g.SavedAt })
             .ToListAsync();
+
+        var summaries = new List<GameSummaryDto>(rows.Count);
+        foreach (var row in rows)
+        {
+            try
+            {
+                var snapshot = JsonSerializer.Deserialize<GameSnapshot>(row.SnapshotJson);
+                if (snapshot is null) continue;
+                summaries.Add(GameSummaryDto.FromGame(
+                    YambGame.FromSnapshot(snapshot, _rules), row.SavedAt));
+            }
+            catch (Exception ex) when (ex is JsonException or DomainException or ArgumentException or InvalidOperationException)
+            {
+            }
+        }
+
+        return summaries;
+    }
 }

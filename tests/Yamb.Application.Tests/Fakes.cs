@@ -27,7 +27,7 @@ internal sealed class FakeGameRepository : IGameRepository
     public Task<IReadOnlyList<GameSummaryDto>> ListSummariesAsync() =>
         Task.FromResult<IReadOnlyList<GameSummaryDto>>(
             _games.Values
-                .Select(g => new GameSummaryDto(g.Id, g.Mode, string.Join(" vs ", g.Players.Select(p => p.Name)), DateTime.UtcNow))
+                .Select(g => GameSummaryDto.FromGame(g, DateTime.UtcNow))
                 .ToList());
 }
 

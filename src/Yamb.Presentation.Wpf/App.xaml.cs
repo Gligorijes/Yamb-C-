@@ -41,7 +41,11 @@ public partial class App : System.Windows.Application
         }
         catch (Exception ex)
         {
-            MessageBox.Show(ex.Message, "Yamb failed to start", MessageBoxButton.OK, MessageBoxImage.Error);
+            MessageBox.Show(
+                ErrorText.From(ex),
+                Localization.Text("L.App.StartErrorTitle"),
+                MessageBoxButton.OK,
+                MessageBoxImage.Error);
             Shutdown(-1);
         }
     }
@@ -55,7 +59,11 @@ public partial class App : System.Windows.Application
 
     private void App_DispatcherUnhandledException(object sender, DispatcherUnhandledExceptionEventArgs e)
     {
-        MessageBox.Show(e.Exception.Message, "Yamb", MessageBoxButton.OK, MessageBoxImage.Error);
+        MessageBox.Show(
+            ErrorText.From(e.Exception),
+            Localization.Text("L.App.ErrorTitle"),
+            MessageBoxButton.OK,
+            MessageBoxImage.Error);
         e.Handled = true;
     }
 }

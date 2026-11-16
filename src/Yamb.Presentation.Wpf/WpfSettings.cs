@@ -35,8 +35,11 @@ public static class WpfSettings
 
     public static bool AutoCalculate { get; set; } = true;
 
+    public static string? LastError { get; private set; }
+
     public static void Load()
     {
+        LastError = null;
         try
         {
             if (!File.Exists(FilePath)) return;
@@ -51,16 +54,16 @@ public static class WpfSettings
             Language = Enum.TryParse<AppLanguage>(data.Language, out var language) ? language : AppLanguage.Serbian;
             AutoCalculate = data.AutoCalculate ?? true;
         }
-        catch (IOException)
+        catch (Exception ex) when (ex is IOException or JsonException or UnauthorizedAccessException)
         {
-        }
-        catch (JsonException)
-        {
+            LastError = ex.Message;
         }
     }
 
-    public static void Save()
+    public static bool Save()
     {
+        LastError = null;
+        string? tempPath = null;
         try
         {
             var directory = Path.GetDirectoryName(FilePath);
@@ -75,11 +78,33 @@ public static class WpfSettings
                 Language = Language.ToString(),
                 AutoCalculate = AutoCalculate
             };
-            File.WriteAllText(FilePath, JsonSerializer.Serialize(data));
+
+            tempPath = FilePath + ".tmp";
+            File.WriteAllText(tempPath, JsonSerializer.Serialize(data));
+            File.Move(tempPath, FilePath, overwrite: true);
+            return true;
         }
-        catch (IOException)
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or JsonException)
         {
+            LastError = ex.Message;
+            if (tempPath is not null && File.Exists(tempPath))
+            {
+                try { File.Delete(tempPath); }
+                catch (IOException) { }
+            }
+
+            return false;
         }
+    }
+
+    public static void Reset()
+    {
+        FaceStyle = DiceFaceStyle.Pips;
+        DieSize = 54;
+        DiceCount = 6;
+        Theme = AppTheme.Dark;
+        Language = AppLanguage.Serbian;
+        AutoCalculate = true;
     }
 
     private sealed class SettingsData

@@ -46,11 +46,35 @@ public static class Localization
         ["L.Nav.Menu"] = ("Meni", "Menu"),
         ["L.Nav.NewGame"] = ("Nova partija", "New game"),
         ["L.Nav.Game"] = ("Partija", "Game"),
+        ["L.Nav.SavedGames"] = ("Sačuvane partije", "Saved games"),
         ["L.Nav.Leaderboard"] = ("Najbolji rezultati", "High scores"),
         ["L.Nav.Settings"] = ("Podešavanja", "Settings"),
         ["L.Nav.Help"] = ("Pomoć", "Help"),
         ["L.Main.Fullscreen"] = ("Ceo ekran (F11)", "Fullscreen (F11)"),
         ["L.Main.ExitFullscreen"] = ("Izađi iz celog ekrana (F11)", "Exit fullscreen (F11)"),
+        ["L.App.StartErrorTitle"] = ("Yamb nije mogao da se pokrene", "Yamb failed to start"),
+        ["L.App.ErrorTitle"] = ("Greška", "Error"),
+        ["L.Error.NameRequired"] = ("Potrebno je uneti ime igrača.", "At least one player name is required."),
+        ["L.Error.NameEmpty"] = ("Ime igrača ne može biti prazno.", "Player names cannot be empty."),
+        ["L.Error.PlayerRequired"] = ("Potreban je najmanje jedan igrač.", "At least one player is required."),
+        ["L.Error.TooManyPlayers"] = ("Partija podržava najviše dva igrača.", "The game supports at most two players."),
+        ["L.Error.ComputerNotReady"] = ("Igra protiv računara još nije dostupna.", "Playing against the computer is not available yet."),
+        ["L.Error.SinglePlayerCount"] = ("Partija za jednog igrača zahteva tačno jednog igrača.", "Single player mode requires exactly one player."),
+        ["L.Error.TwoPlayerCount"] = ("Partija za dva igrača zahteva tačno dva igrača.", "Two player mode requires exactly two players."),
+        ["L.Error.RollFirst"] = ("Najpre bacite kockice.", "Roll the dice first."),
+        ["L.Error.HoldsAfterFinal"] = ("Zadržane kockice se ne mogu menjati posle trećeg bacanja.", "Holds cannot be changed after the final roll."),
+        ["L.Error.MaxRolls"] = ("Najviše tri bacanja u potezu. Prvo upišite rezultat.", "Maximum three rolls per turn. Write a score first."),
+        ["L.Error.AnnouncePhase"] = ("Najava je moguća samo posle prvog bacanja.", "Announcement can only be made after the first roll."),
+        ["L.Error.AlreadyAnnounced"] = ("U ovom potezu je već postavljena najava.", "A row has already been announced this turn."),
+        ["L.Error.WriteBeforeRoll"] = ("Morate baciti kockice pre upisa rezultata.", "You must roll at least once before writing a score."),
+        ["L.Error.OtherTurn"] = ("Na potezu je {0}.", "It is {0}'s turn."),
+        ["L.Error.InvalidPlayer"] = ("Izabran je nevažeći igrač.", "The selected player is invalid."),
+        ["L.Error.GameNotFound"] = ("Sačuvana partija nije pronađena.", "The saved game was not found."),
+        ["L.Error.WriteAnnouncement"] = ("Najavili ste polje; ovog poteza možete upisati samo to polje u koloni Najava.", "You announced a cell; this turn you can only write that cell in the Announcement column."),
+        ["L.Error.NotAvailable"] = ("Izabrano polje nije dostupno po trenutnim pravilima.", "The selected cell is not available under the current rules."),
+        ["L.Error.MaximumColumn"] = ("Maksimalna kolona zahteva najveći mogući rezultat za izabrani red.", "The Maximum column requires the highest possible score for the selected row."),
+        ["L.Error.AnnouncementFilled"] = ("To polje u koloni Najava je već popunjeno.", "That cell in the Announcement column is already filled."),
+        ["L.Error.ColumnMissing"] = ("Izabrana kolona ne postoji na ovom listu.", "The selected column is not part of this sheet."),
 
         ["L.Menu.Eyebrow"] = ("GLAVNI MENI", "MAIN MENU"),
         ["L.Menu.Title"] = ("Spremni za partiju?", "Ready for a game?"),
@@ -62,7 +86,7 @@ public static class Localization
         ["L.Menu.NewGame"] = ("Nova partija", "New game"),
         ["L.Menu.NewGameSubtitle"] = ("Započnite igru za jednog ili dva igrača", "Start a game for one or two players"),
         ["L.Menu.Resume"] = ("Nastavi partiju", "Resume game"),
-        ["L.Menu.ResumeSubtitle"] = ("Nastavite poslednju sačuvanu partiju", "Continue your last saved game"),
+        ["L.Menu.ResumeSubtitle"] = ("Izaberite sačuvanu partiju", "Choose a saved game"),
         ["L.Menu.NoSaved"] = ("Nema sačuvane partije", "No saved game"),
         ["L.Menu.Settings"] = ("Podešavanja", "Settings"),
         ["L.Menu.SettingsSubtitle"] = ("Izgled, jezik i računanje", "Look, language and scoring"),
@@ -101,12 +125,28 @@ public static class Localization
         ["L.New.Player2"] = ("Ime igrača 2", "Player 2 name"),
         ["L.New.DefaultPlayer1"] = ("Igrač 1", "Player 1"),
         ["L.New.DefaultPlayer2"] = ("Igrač 2", "Player 2"),
-        ["L.New.Tip"] = ("Savet: imena možete promeniti pre nego što započnete partiju.", "Tip: you can change the names before starting the game."),
         ["L.New.StepCount"] = ("Korak {0}/3", "Step {0}/3"),
         ["L.New.Back"] = ("Nazad", "Back"),
         ["L.New.Previous"] = ("Prethodni", "Previous"),
         ["L.New.Next"] = ("Dalje", "Next"),
         ["L.New.Start"] = ("Počni partiju", "Start game"),
+
+        ["L.SavedGames.Eyebrow"] = ("SAČUVANE PARTIJE", "SAVED GAMES"),
+        ["L.SavedGames.Title"] = ("Nastavite gde ste stali", "Continue where you left off"),
+        ["L.SavedGames.Subtitle"] = ("Izaberite sačuvanu partiju ili obrišite one koje vam više ne trebaju.", "Choose a saved game or delete the ones you no longer need."),
+        ["L.SavedGames.Meta"] = ("{0} kolona · {1} kockica", "{0} columns · {1} dice"),
+        ["L.SavedGames.Turn"] = ("Na potezu: {0}", "Turn: {0}"),
+        ["L.SavedGames.Progress"] = ("Popunjeno {0}/{1} polja", "{0}/{1} cells filled"),
+        ["L.SavedGames.SavedAt"] = ("Sačuvano {0}", "Saved {0}"),
+        ["L.SavedGames.Continue"] = ("Nastavi", "Continue"),
+        ["L.SavedGames.Delete"] = ("Obriši", "Delete"),
+        ["L.SavedGames.Back"] = ("Nazad", "Back"),
+        ["L.SavedGames.EmptyTitle"] = ("Nema sačuvanih partija", "No saved games"),
+        ["L.SavedGames.EmptyText"] = ("Započnite novu partiju i ona će se automatski sačuvati posle svakog poteza.", "Start a new game and it will be saved automatically after every move."),
+        ["L.SavedGames.DeleteTitle"] = ("Obriši partiju?", "Delete game?"),
+        ["L.SavedGames.DeleteText"] = ("Partija „{0}” biće trajno obrisana.", "The game “{0}” will be permanently deleted."),
+        ["L.SavedGames.DeleteYes"] = ("Obriši", "Delete"),
+        ["L.SavedGames.DeleteNo"] = ("Otkaži", "Cancel"),
 
         ["L.Settings.Eyebrow"] = ("PODEŠAVANJA", "SETTINGS"),
         ["L.Settings.Title"] = ("Prilagodite igru", "Customize the game"),
@@ -134,11 +174,18 @@ public static class Localization
         ["L.Settings.Size"] = ("VELIČINA KOCKICA", "DICE SIZE"),
         ["L.Settings.Preview"] = ("Primer prikaza kockica.", "Preview of the dice."),
         ["L.Settings.StraightInfo"] = ("Kenta: iz 1. bacanja 66 poena, iz 2. bacanja 56 poena, iz 3. bacanja 46 poena.", "Straight: 66 points from the first roll, 56 from the second, 46 from the third."),
+        ["L.Settings.Reset"] = ("Vrati podrazumevano", "Reset to defaults"),
+        ["L.Settings.ResetTitle"] = ("Vraćanje podešavanja", "Reset settings"),
+        ["L.Settings.ResetConfirm"] = ("Da li želite da vratite sva podešavanja na podrazumevane vrednosti?", "Do you want to reset all settings to their default values?"),
+        ["L.Settings.SaveErrorTitle"] = ("Podešavanja nisu sačuvana", "Settings were not saved"),
+        ["L.Settings.SaveError"] = ("Došlo je do greške pri čuvanju podešavanja: {0}", "An error occurred while saving settings: {0}"),
+        ["L.Settings.LoadErrorTitle"] = ("Podešavanja nisu učitana", "Settings were not loaded"),
+        ["L.Settings.LoadError"] = ("Podešavanja su vraćena na podrazumevane vrednosti. Detalji: {0}", "Settings were restored to default values. Details: {0}"),
         ["L.Settings.Back"] = ("Nazad", "Back"),
 
         ["L.Leaderboard.Eyebrow"] = ("RANG LISTA", "LEADERBOARD"),
         ["L.Leaderboard.Title"] = ("Najbolji rezultati", "High scores"),
-        ["L.Leaderboard.Subtitle"] = ("Deset najboljih partija na ovom računaru", "Top ten games on this computer"),
+        ["L.Leaderboard.Subtitle"] = ("Pedeset najboljih rezultata na ovom računaru", "Top fifty scores on this computer"),
         ["L.Leaderboard.Rank"] = ("MESTO", "RANK"),
         ["L.Leaderboard.Players"] = ("IGRAČI", "PLAYERS"),
         ["L.Leaderboard.Score"] = ("SKOR", "SCORE"),
@@ -154,6 +201,8 @@ public static class Localization
         ["L.Help.Eyebrow"] = ("POMOĆ", "HELP"),
         ["L.Help.Title"] = ("Pravila i tok igre", "Rules and gameplay"),
         ["L.Help.Subtitle"] = ("Sve o redovima, kolonama, bonusima i cilju partije", "Everything about rows, columns, bonuses and the goal"),
+        ["L.Help.Search"] = ("PRETRAGA", "SEARCH"),
+        ["L.Help.NoResults"] = ("Nema rezultata za uneti pojam.", "No results for that search."),
         ["L.Help.Contents"] = ("SADRŽAJ", "CONTENTS"),
         ["L.Help.Back"] = ("Nazad", "Back"),
         ["L.Help.Previous"] = ("< Prethodno", "< Previous"),
@@ -231,9 +280,9 @@ public static class Localization
                Posle prvog bacanja kliknite polje u ovoj koloni da biste
                ga najavili. Najavljeno polje je označeno i samo ono sme
                da se upiše u ovom potezu, u koloni Najava. Najava se ne
-               može promeniti. Ako nastavite da bacate, najava se
-               automatski upisuje posle trećeg bacanja. Najavljujte red
-               koji realno možete da ostvarite tim bacanjem.
+               može promeniti. Posle trećeg bacanja označeno polje
+               ostaje spremno, a upisujete ga ručno klikom. Najavljujte
+               red koji realno možete da ostvarite tim bacanjem.
 
             5. RUČNO
                Upis je dozvoljen samo u potezu u kome su sve kockice
@@ -307,10 +356,10 @@ public static class Localization
                After the first roll, click a cell in this column to
                announce it. The announced cell is marked and only it
                may be written this turn, in the Announcement column.
-               The announcement cannot be changed. If you keep rolling,
-               it is written automatically after the third roll.
-               Announce a row you can realistically achieve with the
-               current dice.
+               The announcement cannot be changed. After the third roll
+               the marked cell stays ready and you write it manually by
+               clicking it. Announce a row you can realistically achieve
+               with the current dice.
 
             5. HAND
                A score may be written only in a turn where all dice were
@@ -472,6 +521,9 @@ public static class Localization
         ["L.Game.CannotWrite"] = ("Ne možete da upišete.", "You cannot write there."),
         ["L.Game.Ok"] = ("U redu", "OK"),
         ["L.Game.GameOver"] = ("Kraj igre", "Game over"),
+        ["L.Game.Continue"] = ("Nastavi", "Continue"),
+        ["L.Game.HandYambTitle"] = ("Neverovatna sreća!", "Incredible luck!"),
+        ["L.Game.HandYambText"] = ("Ručni Jamb! Postigli ste najveći podvig u koloni Ručno. Čestitamo!", "Hand Yamb! You achieved the ultimate feat in the Hand column. Congratulations!"),
         ["L.Game.SheetComplete"] = ("Popunili ste ceo list!", "You filled the whole sheet!"),
         ["L.Game.Winner"] = ("{0} pobeđuje!", "{0} wins!"),
         ["L.Game.Draw"] = ("Nerešeno!", "Draw!"),

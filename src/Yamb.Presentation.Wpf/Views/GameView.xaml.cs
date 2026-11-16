@@ -1,4 +1,4 @@
-using System.Text;
+﻿using System.Text;
 using System.Windows;
 using System.Windows.Automation;
 using System.Windows.Controls;
@@ -85,6 +85,7 @@ public partial class GameView : UserControl
     private readonly Guid _gameId;
     private readonly Action _onExitToMenu;
     private readonly Action _onGameOver;
+    private readonly Action _onHelp;
 
     private readonly Brush _panelBrush;
     private readonly Brush _borderBrush;
@@ -118,13 +119,19 @@ public partial class GameView : UserControl
     private GameDto? _lastGame;
     private bool _busy;
 
-    public GameView(IGameService gameService, Guid gameId, Action onExitToMenu, Action onGameOver)
+    public GameView(
+        IGameService gameService,
+        Guid gameId,
+        Action onExitToMenu,
+        Action onGameOver,
+        Action onHelp)
     {
         InitializeComponent();
         _gameService = gameService;
         _gameId = gameId;
         _onExitToMenu = onExitToMenu;
         _onGameOver = onGameOver;
+        _onHelp = onHelp;
 
         _panelBrush = (Brush)FindResource("PanelBrush");
         _borderBrush = (Brush)FindResource("BorderBrush");
@@ -150,11 +157,73 @@ public partial class GameView : UserControl
         };
 
         Loaded += OnViewLoaded;
+        PreviewKeyDown += OnPreviewKeyDown;
     }
 
     private async void OnViewLoaded(object sender, RoutedEventArgs e)
     {
         await RefreshAsync();
+        Keyboard.Focus(this);
+    }
+
+    private void OnPreviewKeyDown(object sender, KeyEventArgs e)
+    {
+        if (PopupOverlay.Visibility == Visibility.Visible) return;
+
+        if (e.Key is Key.R or Key.Space)
+        {
+            if (_rollButton?.IsEnabled == true)
+            {
+                OnRollClick(this, new RoutedEventArgs());
+                e.Handled = true;
+            }
+
+            return;
+        }
+
+        int? dieIndex = e.Key switch
+        {
+            Key.D1 or Key.NumPad1 => 0,
+            Key.D2 or Key.NumPad2 => 1,
+            Key.D3 or Key.NumPad3 => 2,
+            Key.D4 or Key.NumPad4 => 3,
+            Key.D5 or Key.NumPad5 => 4,
+            Key.D6 or Key.NumPad6 => 5,
+            _ => null
+        };
+
+        if (dieIndex is int index)
+        {
+            var game = _lastGame;
+            if (game is not null &&
+                game.RollNumber >= 1 &&
+                game.RollNumber < MaxRollsPerTurn &&
+                index < game.Dice.Dice.Count)
+            {
+                _ = OnDieClick(game.CurrentPlayerIndex, index);
+            }
+
+            e.Handled = true;
+            return;
+        }
+
+        if (e.Key == Key.Enter)
+        {
+            var game = _lastGame;
+            if (game?.AnnouncedRow is { } row && game.RollNumber >= MaxRollsPerTurn)
+            {
+                _ = OnCellClick(game.CurrentPlayerIndex, Column.Announcement, row);
+                e.Handled = true;
+            }
+
+            return;
+        }
+
+        if (e.Key == Key.F1)
+        {
+            _onHelp();
+            e.Handled = true;
+        }
     }
 
     private async void OnRollClick(object sender, RoutedEventArgs e)
@@ -164,14 +233,11 @@ public partial class GameView : UserControl
         await ExecuteAsync(async () =>
         {
             int playerIndex = game.CurrentPlayerIndex;
-            bool autoWrite = game.AnnouncedRow is not null && game.RollNumber + 1 >= MaxRollsPerTurn;
 
             await _gameService.RollDiceAsync(_gameId, playerIndex);
             var fresh = await _gameService.GetGameAsync(_gameId);
 
-            if (!autoWrite)
-                await AnimateRollAsync(playerIndex, fresh.Dice);
-
+            await AnimateRollAsync(playerIndex, fresh.Dice);
             await RefreshAsync();
         });
     }
@@ -277,6 +343,20 @@ public partial class GameView : UserControl
             try
             {
                 await _gameService.WriteScoreAsync(_gameId, playerIndex, column, row);
+
+                if (column == Column.Hand && row == Row.Yamb)
+                {
+                    ShowPopup(
+                        L("L.Game.HandYambTitle"),
+                        L("L.Game.HandYambText"),
+                        (L("L.Game.Continue"), () =>
+                        {
+                            HidePopup();
+                            _ = ContinueAfterHandYambAsync(playerIndex, column, row);
+                        }));
+                    return;
+                }
+
                 await RefreshAsync();
                 PulseCell(playerIndex, column, row);
             }
@@ -285,6 +365,15 @@ public partial class GameView : UserControl
                 var message = game.AnnouncedRow is not null ? L("L.Game.CannotWrite") : L("L.Game.NotAvailable");
                 ShowPopup("Jamb", message, (L("L.Game.Ok"), HidePopup));
             }
+        });
+    }
+
+    private async Task ContinueAfterHandYambAsync(int playerIndex, Column column, Row row)
+    {
+        await ExecuteAsync(async () =>
+        {
+            await RefreshAsync();
+            PulseCell(playerIndex, column, row);
         });
     }
 
@@ -336,7 +425,7 @@ public partial class GameView : UserControl
         }
         catch (Exception ex) when (ex is DomainException or GameException)
         {
-            MessageBox.Show(ex.Message, "Jamb", MessageBoxButton.OK, MessageBoxImage.Warning);
+            MessageBox.Show(ErrorText.From(ex), Localization.Text("L.App.ErrorTitle"), MessageBoxButton.OK, MessageBoxImage.Warning);
         }
         finally
         {
@@ -764,7 +853,7 @@ public partial class GameView : UserControl
                 0,
                 c + 1,
                 ColumnHeaders[column],
-                $"{ColumnName(column)} – {ColumnTooltip(column)}");
+                $"{ColumnName(column)} â€“ {ColumnTooltip(column)}");
         }
         AddHeaderText(grid, 0, totalColumn, "YAMB", null, true);
 

@@ -63,23 +63,9 @@ public sealed class GameService : IGameService
         var game = await LoadGameAsync(gameId);
         EnsureActingPlayer(game, playerIndex);
 
-        var player = game.Players[playerIndex];
-        bool autoWriteAnnouncement =
-            game.AnnouncedRow is not null && game.RollNumber + 1 >= game.Rules.MaxRollsPerTurn;
-
         game.Roll();
 
-        if (autoWriteAnnouncement && game.AnnouncedRow is { } announcedRow)
-        {
-            game.WriteScore(Column.Announcement, announcedRow);
-            var score = player.Scoresheet.GetCell(Column.Announcement, announcedRow) ?? 0;
-            await _analytics.TrackColumnUsageAsync(Column.Announcement, announcedRow, score);
-        }
-
         await _gameRepository.SaveAsync(game);
-
-        if (autoWriteAnnouncement)
-            await HandleCompletedGameAsync(game);
 
         return ToDto(game);
     }
@@ -127,10 +113,19 @@ public sealed class GameService : IGameService
             .ToList();
         await _analytics.TrackGameCompletedAsync(game.Mode, finalScores);
 
-        var participants = string.Join(" & ", game.Players.Select(p => p.Name));
-        var bestScore = finalScores.Count == 0 ? 0 : finalScores.Max(s => s.Score);
-        if (await _leaderboardService.SubmitScoreAsync(participants, bestScore))
-            await _analytics.TrackHighScoreAchievedAsync(bestScore, participants);
+        bool highScore = false;
+        foreach (var player in finalScores)
+        {
+            if (await _leaderboardService.SubmitScoreAsync(player.Name, player.Score))
+                highScore = true;
+        }
+
+        if (highScore)
+        {
+            var bestScore = finalScores.Max(s => s.Score);
+            await _analytics.TrackHighScoreAchievedAsync(
+                bestScore, string.Join(", ", finalScores.Select(s => s.Name)));
+        }
     }
 
     public async Task<IReadOnlyList<AvailableMoveDto>> GetAvailableMovesAsync(Guid gameId, int playerIndex)

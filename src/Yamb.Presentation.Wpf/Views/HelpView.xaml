@@ -41,6 +41,24 @@
                     VerticalAlignment="Top"
                     Effect="{StaticResource CardShadow}">
                 <StackPanel>
+                    <TextBlock Text="{DynamicResource L.Help.Search}"
+                               FontSize="10"
+                               FontWeight="Bold"
+                               Foreground="{DynamicResource MutedTextBrush}"
+                               Margin="6,0,0,6" />
+                    <TextBox x:Name="SearchBox"
+                             Height="34"
+                             FontSize="12.5"
+                             Margin="0,0,0,6"
+                             TextChanged="OnSearchChanged"
+                             AutomationProperties.AutomationId="HelpSearch" />
+                    <TextBlock x:Name="NoResultsText"
+                               Text="{DynamicResource L.Help.NoResults}"
+                               FontSize="11.5"
+                               Foreground="{DynamicResource DangerBrush}"
+                               TextWrapping="Wrap"
+                               Margin="6,2,0,8"
+                               Visibility="Collapsed" />
                     <TextBlock Text="{DynamicResource L.Help.Contents}"
                                FontSize="11"
                                FontWeight="Bold"

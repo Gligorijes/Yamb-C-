@@ -89,7 +89,7 @@ public partial class MainWindow : Window
         }
         catch (Exception ex) when (ex is DomainException or GameException)
         {
-            MessageBox.Show(this, ex.Message, "Jamb", MessageBoxButton.OK, MessageBoxImage.Warning);
+            MessageBox.Show(this, ErrorText.From(ex), Localization.Text("L.App.ErrorTitle"), MessageBoxButton.OK, MessageBoxImage.Warning);
         }
     }
 
@@ -98,24 +98,27 @@ public partial class MainWindow : Window
         try
         {
             var games = await _gameService.ListGamesAsync();
-            var latest = games.OrderByDescending(g => g.SavedAt).FirstOrDefault();
-            if (latest is null)
+            if (games.Count == 0)
             {
                 await ShowMenuAsync();
                 return;
             }
 
-            ShowGame(latest.Id);
+            Navigate(
+                new SavedGamesView(_gameService, ShowGame, GoMenu),
+                "L.Nav.SavedGames");
         }
         catch (Exception ex) when (ex is DomainException or GameException)
         {
-            MessageBox.Show(this, ex.Message, "Jamb", MessageBoxButton.OK, MessageBoxImage.Warning);
+            MessageBox.Show(this, ErrorText.From(ex), Localization.Text("L.App.ErrorTitle"), MessageBoxButton.OK, MessageBoxImage.Warning);
         }
     }
 
     private void ShowGame(Guid gameId)
     {
-        Navigate(new GameView(_gameService, gameId, GoMenu, OnGameCompleted), "L.Nav.Game");
+        Navigate(
+            new GameView(_gameService, gameId, GoMenu, OnGameCompleted, () => ShowHelp(1)),
+            "L.Nav.Game");
     }
 
     private void OnGameCompleted()
@@ -135,7 +138,12 @@ public partial class MainWindow : Window
 
     private void OnHelpRequested()
     {
-        Navigate(new HelpView(GoMenu), "L.Nav.Help");
+        ShowHelp(0);
+    }
+
+    private void ShowHelp(int page)
+    {
+        Navigate(new HelpView(GoMenu, page), "L.Nav.Help");
     }
 
     private void GoMenu()
@@ -212,4 +220,3 @@ public partial class MainWindow : Window
         Close();
     }
 }
-

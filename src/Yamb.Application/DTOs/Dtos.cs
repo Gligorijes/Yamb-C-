@@ -1,3 +1,4 @@
+using Yamb.Domain.Aggregates;
 using Yamb.Domain.Enums;
 
 namespace Yamb.Application.DTOs;
@@ -40,7 +41,35 @@ public record PlayerScoreDto(string Name, int Score);
 
 public record LeaderboardEntryDto(int Rank, string Participants, int Score, DateTime AchievedAt);
 
-public record GameSummaryDto(Guid Id, GameMode Mode, string PlayerNames, DateTime SavedAt);
+public record SavedPlayerSummaryDto(string Name, int Score, int FilledCells);
+
+public record GameSummaryDto(
+    Guid Id,
+    GameMode Mode,
+    string PlayerNames,
+    DateTime SavedAt,
+    int ColumnCount,
+    int DiceCount,
+    int TotalCells,
+    int CurrentPlayerIndex,
+    IReadOnlyList<SavedPlayerSummaryDto> Players)
+{
+    public static GameSummaryDto FromGame(YambGame game, DateTime savedAt) => new(
+        game.Id,
+        game.Mode,
+        string.Join(" vs ", game.Players.Select(p => p.Name)),
+        savedAt,
+        game.Columns.Count,
+        game.Rules.DiceCount,
+        game.CurrentPlayer.Scoresheet.TotalCellCount,
+        game.CurrentPlayerIndex,
+        game.Players
+            .Select(p => new SavedPlayerSummaryDto(
+                p.Name,
+                p.Scoresheet.CurrentScore,
+                p.Scoresheet.FilledCellCount))
+            .ToList());
+}
 
 public record StartGameCommand(
     GameMode Mode,

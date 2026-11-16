@@ -325,14 +325,17 @@
             </Border>
         </Grid>
 
-        <StackPanel Grid.Row="2"
-                    Orientation="Horizontal"
-                    HorizontalAlignment="Right"
-                    Margin="0,20,0,0">
+        <Grid Grid.Row="2" Margin="0,20,0,0">
+            <Button Content="{DynamicResource L.Settings.Reset}"
+                    HorizontalAlignment="Left"
+                    Style="{StaticResource DialogButtonStyle}"
+                    Click="OnResetClick"
+                    AutomationProperties.AutomationId="SettingsReset" />
             <Button Content="{DynamicResource L.Settings.Back}"
+                    HorizontalAlignment="Right"
                     Style="{StaticResource DialogButtonStyle}"
                     Click="OnBackClick"
                     AutomationProperties.AutomationId="SettingsBack" />
-        </StackPanel>
+        </Grid>
     </Grid>
 </UserControl>

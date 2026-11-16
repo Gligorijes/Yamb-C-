@@ -158,7 +158,7 @@ public class GameServiceTests
     }
 
     [Fact]
-    public async Task RollDice_ThirdRollWithAnnouncement_AutoWritesAndAdvances()
+    public async Task RollDice_ThirdRollWithAnnouncement_KeepsAnnouncementForManualWrite()
     {
         var game = await _service.StartGameAsync(
             new StartGameCommand(GameMode.TwoPlayer, new[] { "A", "B" }));
@@ -167,6 +167,25 @@ public class GameServiceTests
         await _service.AnnounceAsync(game.Id, 0, Row.Ones);
         await _service.RollDiceAsync(game.Id, 0);
         var dto = await _service.RollDiceAsync(game.Id, 0);
+
+        dto.Players[0].Scoresheet.Cells[Column.Announcement][Row.Ones].Should().BeNull();
+        dto.CurrentPlayerIndex.Should().Be(0);
+        dto.RollNumber.Should().Be(3);
+        dto.AnnouncedRow.Should().Be(Row.Ones);
+    }
+
+    [Fact]
+    public async Task WriteScore_AfterThirdRollWithAnnouncement_WritesAndAdvances()
+    {
+        var game = await _service.StartGameAsync(
+            new StartGameCommand(GameMode.TwoPlayer, new[] { "A", "B" }));
+
+        await _service.RollDiceAsync(game.Id, 0);
+        await _service.AnnounceAsync(game.Id, 0, Row.Ones);
+        await _service.RollDiceAsync(game.Id, 0);
+        await _service.RollDiceAsync(game.Id, 0);
+
+        var dto = await _service.WriteScoreAsync(game.Id, 0, Column.Announcement, Row.Ones);
 
         dto.Players[0].Scoresheet.Cells[Column.Announcement][Row.Ones].Should().HaveValue();
         dto.CurrentPlayerIndex.Should().Be(1);
@@ -213,6 +232,33 @@ public class GameServiceTests
         dto.IsGameOver.Should().BeTrue();
         _leaderboardRepository.Entries.Should().ContainSingle()
             .Which.Participants.Should().Be("P1");
+    }
+
+    [Fact]
+    public async Task WriteScore_GameOver_SubmitsEachPlayerSeparately()
+    {
+        var gameId = Guid.NewGuid();
+        var cells = AllCellsZero()
+            .Where(c => !(c.Column == Column.Downward && c.Row == Row.Ones))
+            .ToList();
+        var snapshot = new GameSnapshot(
+            gameId, GameMode.TwoPlayer, 0,
+            new[]
+            {
+                new PlayerSnapshot("Ana", cells),
+                new PlayerSnapshot("Bane", cells)
+            },
+            new[] { 6, 6, 6, 6, 6, 1 }.Select(v => new Die(v)).ToList(),
+            1, null, true);
+        await _gameRepository.SaveAsync(YambGame.FromSnapshot(snapshot));
+
+        var first = await _service.WriteScoreAsync(gameId, 0, Column.Downward, Row.Ones);
+        first.CurrentPlayerIndex.Should().Be(1);
+        await _service.RollDiceAsync(gameId, 1);
+        await _service.WriteScoreAsync(gameId, 1, Column.Downward, Row.Ones);
+
+        _leaderboardRepository.Entries.Select(e => e.Participants)
+            .Should().BeEquivalentTo(new[] { "Ana", "Bane" });
     }
 
     [Fact]

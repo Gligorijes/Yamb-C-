@@ -1,4 +1,4 @@
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Media.Effects;
@@ -18,7 +18,24 @@ public partial class SettingsView : UserControl
         _onBack = onBack;
 
         _dieShadow = (Effect)FindResource("DieShadow");
+        SetControlsFromSettings();
 
+        _loaded = true;
+        RenderPreview();
+
+        if (WpfSettings.LastError is not null)
+        {
+            Loaded += (_, _) => MessageBox.Show(
+                Window.GetWindow(this),
+                Localization.Format("L.Settings.LoadError", WpfSettings.LastError),
+                Localization.Text("L.Settings.LoadErrorTitle"),
+                MessageBoxButton.OK,
+                MessageBoxImage.Warning);
+        }
+    }
+
+    private void SetControlsFromSettings()
+    {
         ThemeDarkRadio.IsChecked = WpfSettings.Theme == AppTheme.Dark;
         ThemeLightRadio.IsChecked = WpfSettings.Theme == AppTheme.Light;
         PipsRadio.IsChecked = WpfSettings.FaceStyle == DiceFaceStyle.Pips;
@@ -31,9 +48,18 @@ public partial class SettingsView : UserControl
         DiceSixRadio.IsChecked = WpfSettings.DiceCount == 6;
         SizeSlider.Value = WpfSettings.DieSize;
         SizeText.Text = $"{(int)WpfSettings.DieSize} px";
+    }
 
-        _loaded = true;
-        RenderPreview();
+    private void SaveSettings()
+    {
+        if (WpfSettings.Save()) return;
+
+        MessageBox.Show(
+            Window.GetWindow(this),
+            Localization.Format("L.Settings.SaveError", WpfSettings.LastError ?? ""),
+            Localization.Text("L.Settings.SaveErrorTitle"),
+            MessageBoxButton.OK,
+            MessageBoxImage.Warning);
     }
 
     private void OnThemeChanged(object sender, RoutedEventArgs e)
@@ -44,7 +70,7 @@ public partial class SettingsView : UserControl
         if (WpfSettings.Theme == theme && ThemeManager.Current == theme) return;
 
         WpfSettings.Theme = theme;
-        WpfSettings.Save();
+        SaveSettings();
         ThemeManager.Apply(theme);
         RenderPreview();
     }
@@ -58,7 +84,7 @@ public partial class SettingsView : UserControl
             : RomanRadio.IsChecked == true
                 ? DiceFaceStyle.Roman
                 : DiceFaceStyle.Pips;
-        WpfSettings.Save();
+        SaveSettings();
         RenderPreview();
     }
 
@@ -70,7 +96,7 @@ public partial class SettingsView : UserControl
         if (WpfSettings.Language == language) return;
 
         WpfSettings.Language = language;
-        WpfSettings.Save();
+        SaveSettings();
         Localization.Apply(language);
     }
 
@@ -79,7 +105,7 @@ public partial class SettingsView : UserControl
         if (!_loaded) return;
 
         WpfSettings.AutoCalculate = AutoCalculateCheck.IsChecked == true;
-        WpfSettings.Save();
+        SaveSettings();
     }
 
     private void OnDiceCountChanged(object sender, RoutedEventArgs e)
@@ -87,7 +113,7 @@ public partial class SettingsView : UserControl
         if (!_loaded) return;
 
         WpfSettings.DiceCount = DiceFiveRadio.IsChecked == true ? 5 : 6;
-        WpfSettings.Save();
+        SaveSettings();
         RenderPreview();
     }
 
@@ -97,7 +123,7 @@ public partial class SettingsView : UserControl
 
         WpfSettings.DieSize = Math.Round(e.NewValue);
         if (SizeText is not null) SizeText.Text = $"{(int)WpfSettings.DieSize} px";
-        WpfSettings.Save();
+        SaveSettings();
         RenderPreview();
     }
 
@@ -131,6 +157,37 @@ public partial class SettingsView : UserControl
                 Child = DiceVisuals.BuildFace(value, size, WpfSettings.FaceStyle)
             };
             PreviewPanel.Children.Add(face);
+        }
+    }
+
+    private void OnResetClick(object sender, RoutedEventArgs e)
+    {
+        var confirmed = MessageBox.Show(
+            Window.GetWindow(this),
+            Localization.Text("L.Settings.ResetConfirm"),
+            Localization.Text("L.Settings.ResetTitle"),
+            MessageBoxButton.YesNo,
+            MessageBoxImage.Question) == MessageBoxResult.Yes;
+
+        if (!confirmed) return;
+
+        _loaded = false;
+        WpfSettings.Reset();
+        var saved = WpfSettings.Save();
+        ThemeManager.Apply(WpfSettings.Theme);
+        Localization.Apply(WpfSettings.Language);
+        SetControlsFromSettings();
+        _loaded = true;
+        RenderPreview();
+
+        if (!saved)
+        {
+            MessageBox.Show(
+                Window.GetWindow(this),
+                Localization.Format("L.Settings.SaveError", WpfSettings.LastError ?? ""),
+                Localization.Text("L.Settings.SaveErrorTitle"),
+                MessageBoxButton.OK,
+                MessageBoxImage.Warning);
         }
     }
 

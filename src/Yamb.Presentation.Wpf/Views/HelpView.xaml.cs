@@ -9,8 +9,9 @@ public partial class HelpView : UserControl
     private readonly Action _onBack;
     private readonly List<Button> _tabs = new();
     private int _page;
+    private string _query = "";
 
-    public HelpView(Action onBack)
+    public HelpView(Action onBack, int initialPage = 0)
     {
         InitializeComponent();
         _onBack = onBack;
@@ -31,7 +32,7 @@ public partial class HelpView : UserControl
             TabPanel.Children.Add(button);
         }
 
-        ShowPage(0);
+        ShowPage(Math.Clamp(initialPage, 0, HelpText.Pages.Count - 1));
     }
 
     private void ShowPage(int page)
@@ -47,6 +48,32 @@ public partial class HelpView : UserControl
 
         PageScroll.ScrollToTop();
         UiAnimations.SlideIn(PageText);
+    }
+
+    private void OnSearchChanged(object sender, TextChangedEventArgs e)
+    {
+        if (_tabs.Count == 0) return;
+
+        _query = SearchBox.Text.Trim();
+        var matches = new List<int>();
+
+        for (int i = 0; i < _tabs.Count; i++)
+        {
+            bool match = _query.Length == 0 ||
+                HelpText.Titles[i].Contains(_query, StringComparison.CurrentCultureIgnoreCase) ||
+                HelpText.Pages[i].Contains(_query, StringComparison.CurrentCultureIgnoreCase);
+            _tabs[i].Visibility = match ? Visibility.Visible : Visibility.Collapsed;
+            if (match) matches.Add(i);
+        }
+
+        NoResultsText.Visibility = _query.Length > 0 && matches.Count == 0
+            ? Visibility.Visible
+            : Visibility.Collapsed;
+
+        if (_query.Length > 0 && matches.Count > 0 && !matches.Contains(_page))
+        {
+            ShowPage(matches[0]);
+        }
     }
 
     private void OnPrevClick(object sender, RoutedEventArgs e)

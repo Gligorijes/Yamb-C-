@@ -1,0 +1,85 @@
+<UserControl x:Class="Yamb.Presentation.Wpf.Views.SavedGamesView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             FontFamily="Segoe UI">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <StackPanel Grid.Row="0">
+            <TextBlock Text="{DynamicResource L.SavedGames.Eyebrow}"
+                       FontSize="11"
+                       FontWeight="Bold"
+                       Foreground="{DynamicResource MutedTextBrush}" />
+            <TextBlock Text="{DynamicResource L.SavedGames.Title}"
+                       FontSize="30"
+                       FontWeight="Bold"
+                       Foreground="{DynamicResource TextBrush}"
+                       Margin="0,8,0,0" />
+            <TextBlock Text="{DynamicResource L.SavedGames.Subtitle}"
+                       FontSize="12.5"
+                       Foreground="{DynamicResource MutedTextBrush}"
+                       Margin="0,6,0,0" />
+        </StackPanel>
+
+        <Border Grid.Row="1"
+                Margin="0,22,0,0"
+                Background="{DynamicResource PanelBrush}"
+                BorderBrush="{DynamicResource BorderBrush}"
+                BorderThickness="1"
+                CornerRadius="18"
+                Padding="12"
+                Effect="{StaticResource CardShadow}">
+            <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                <StackPanel x:Name="GamesPanel" />
+            </ScrollViewer>
+        </Border>
+
+        <Button Grid.Row="2"
+                Content="{DynamicResource L.SavedGames.Back}"
+                HorizontalAlignment="Left"
+                Margin="0,20,0,0"
+                Style="{StaticResource DialogButtonStyle}"
+                Click="OnBackClick"
+                AutomationProperties.AutomationId="SavedGamesBack" />
+
+        <Grid x:Name="PopupOverlay"
+              Grid.RowSpan="3"
+              Visibility="Collapsed"
+              Background="{DynamicResource PopupShadeBrush}">
+            <Border Style="{StaticResource PopupPanelStyle}"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center">
+                <StackPanel>
+                    <TextBlock Text="{DynamicResource L.SavedGames.DeleteTitle}"
+                               FontSize="18"
+                               FontWeight="Bold"
+                               Foreground="{DynamicResource TextBrush}"
+                               HorizontalAlignment="Center" />
+                    <TextBlock x:Name="PopupText"
+                               FontSize="14"
+                               Foreground="{DynamicResource MutedTextBrush}"
+                               TextWrapping="Wrap"
+                               TextAlignment="Center"
+                               Margin="0,10,0,0" />
+                    <StackPanel Orientation="Horizontal"
+                                HorizontalAlignment="Center"
+                                Margin="0,20,0,0">
+                        <Button Content="{DynamicResource L.SavedGames.DeleteNo}"
+                                Style="{StaticResource DialogButtonStyle}"
+                                Margin="0,0,12,0"
+                                Click="OnDeleteCancelled"
+                                AutomationProperties.AutomationId="DeleteNo" />
+                        <Button Content="{DynamicResource L.SavedGames.DeleteYes}"
+                                Style="{StaticResource PrimaryButtonStyle}"
+                                Click="OnDeleteConfirmed"
+                                AutomationProperties.AutomationId="DeleteYes" />
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+        </Grid>
+    </Grid>
+</UserControl>

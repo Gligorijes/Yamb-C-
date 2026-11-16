@@ -29,11 +29,7 @@ public sealed class InMemoryGameRepository : IGameRepository
     public Task<IReadOnlyList<GameSummaryDto>> ListSummariesAsync() =>
         Task.FromResult<IReadOnlyList<GameSummaryDto>>(
             _games.Values
-                .Select(g => new GameSummaryDto(
-                    g.Id,
-                    g.Mode,
-                    string.Join(" vs ", g.Players.Select(p => p.Name)),
-                    _savedAt.GetValueOrDefault(g.Id)))
+                .Select(g => GameSummaryDto.FromGame(g, _savedAt.GetValueOrDefault(g.Id)))
                 .OrderByDescending(s => s.SavedAt)
                 .ToList());
 }

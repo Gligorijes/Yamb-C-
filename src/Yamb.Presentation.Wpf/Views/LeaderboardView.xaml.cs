@@ -1,4 +1,4 @@
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using Yamb.Application.DTOs;
@@ -33,12 +33,12 @@ public partial class LeaderboardView : UserControl
         _busy = true;
         try
         {
-            var entries = await _leaderboardService.GetTopScoresAsync(10);
+            var entries = await _leaderboardService.GetTopScoresAsync();
             Render(entries);
         }
         catch (Exception ex) when (ex is DomainException or GameException)
         {
-            MessageBox.Show(Window.GetWindow(this), ex.Message, "Jamb", MessageBoxButton.OK, MessageBoxImage.Warning);
+            MessageBox.Show(Window.GetWindow(this), ErrorText.From(ex), Localization.Text("L.App.ErrorTitle"), MessageBoxButton.OK, MessageBoxImage.Warning);
         }
         finally
         {
@@ -174,7 +174,7 @@ public partial class LeaderboardView : UserControl
         }
         catch (Exception ex) when (ex is DomainException or GameException)
         {
-            MessageBox.Show(Window.GetWindow(this), ex.Message, "Jamb", MessageBoxButton.OK, MessageBoxImage.Warning);
+            MessageBox.Show(Window.GetWindow(this), ErrorText.From(ex), Localization.Text("L.App.ErrorTitle"), MessageBoxButton.OK, MessageBoxImage.Warning);
         }
     }
 
