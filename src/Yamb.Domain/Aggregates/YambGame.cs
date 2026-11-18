@@ -61,11 +61,9 @@ public sealed class YambGame
             throw new DomainException("At least one player is required.");
         if (players.Count > 2)
             throw new DomainException("Yamb supports at most 2 players.");
-        if (Mode == GameMode.VersusComputer)
-            throw new DomainException("VersusComputer mode is not implemented yet.");
         if (Mode == GameMode.SinglePlayer && players.Count != 1)
             throw new DomainException("Single player mode requires exactly one player.");
-        if (Mode == GameMode.TwoPlayer && players.Count != 2)
+        if (Mode is GameMode.TwoPlayer or GameMode.VersusComputer && players.Count != 2)
             throw new DomainException("Two player mode requires exactly two players.");
 
         Players = players;

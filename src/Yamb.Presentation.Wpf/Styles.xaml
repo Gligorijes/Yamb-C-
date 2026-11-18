@@ -766,15 +766,17 @@
         <Setter Property="Foreground" Value="{DynamicResource TextBrush}" />
         <Setter Property="Cursor" Value="Hand" />
         <Setter Property="Margin" Value="0" />
+        <Setter Property="Padding" Value="18,16" />
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="RadioButton">
                     <Border x:Name="Bd"
                             CornerRadius="14"
-                            Padding="18,16"
+                            Padding="{TemplateBinding Padding}"
                             Background="{DynamicResource PanelGradientBrush}"
                             BorderBrush="{DynamicResource BorderBrush}"
-                            BorderThickness="1.5">
+                            BorderThickness="1.5"
+                            SnapsToDevicePixels="True">
                         <ContentPresenter VerticalAlignment="Center"
                                           TextElement.Foreground="{TemplateBinding Foreground}" />
                     </Border>

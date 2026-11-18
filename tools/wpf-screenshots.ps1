@@ -250,6 +250,19 @@ try {
     if (-not (Wait-El { Find-ById $mainEl 'MenuNewGame' })) { throw 'menu did not return after rose theme' }
     Capture $main '11-menu-rose.png'
 
+    Invoke-ById $mainEl 'MenuNewGame'
+    Invoke-ById $mainEl 'NewGameNext'
+    $botMode = Wait-El { Find-ById $mainEl 'ModeBot' }
+    if (-not $botMode) { throw 'bot mode option missing' }
+    Select-El $botMode
+    Start-Sleep -Milliseconds 700
+    Capture $main '12-bot-mode.png'
+    Invoke-ById $mainEl 'NewGameNext'
+    Invoke-ById $mainEl 'StartGame'
+    if (-not (Wait-El { Find-ById $mainEl 'RollButton' })) { throw 'bot game did not start' }
+    Capture $main '13-bot-game.png'
+    Stop-Game $mainEl
+
     Invoke-ById $mainEl 'MenuExit'
     if (-not $p.WaitForExit(15000)) { throw 'app did not exit' }
     Write-Host "Screenshots: $shotDir"

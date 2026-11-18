@@ -462,8 +462,11 @@ public class YambGameTests
     }
 
     [Fact]
-    public void Constructor_RejectsUnimplementedMode()
+    public void Constructor_ValidatesBotMode()
     {
+        var valid = () => new YambGame(GameMode.VersusComputer, new[] { new Player("P1"), new Player("Bot") });
+        valid.Should().NotThrow();
+
         var act = () => new YambGame(GameMode.VersusComputer, new[] { new Player("P1") });
         act.Should().Throw<DomainException>();
     }

@@ -4,6 +4,7 @@ using System.Windows.Automation;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
+using System.Windows.Media.Animation;
 using System.Windows.Media.Effects;
 using System.Windows.Shapes;
 using Yamb.Application.DTOs;
@@ -120,6 +121,8 @@ public partial class GameView : UserControl
 
     private GameDto? _lastGame;
     private bool _busy;
+    private bool _botRunning;
+    private readonly CancellationTokenSource _botCts = new();
 
     public GameView(
         IGameService gameService,
@@ -161,6 +164,7 @@ public partial class GameView : UserControl
         };
 
         Loaded += OnViewLoaded;
+        Unloaded += (_, _) => _botCts.Cancel();
         PreviewKeyDown += OnPreviewKeyDown;
     }
 
@@ -233,7 +237,7 @@ public partial class GameView : UserControl
     private async void OnRollClick(object sender, RoutedEventArgs e)
     {
         var game = _lastGame;
-        if (game is null) return;
+        if (game is null || IsBotTurn(game)) return;
         await ExecuteAsync(async () =>
         {
             int playerIndex = game.CurrentPlayerIndex;
@@ -251,18 +255,67 @@ public partial class GameView : UserControl
         var row = _diceRows.ElementAtOrDefault(playerIndex);
         if (row is null) return;
 
-        for (int frame = 0; frame < 8; frame++)
-        {
-            row.Children.Clear();
-            for (int i = 0; i < dice.Dice.Count; i++)
-            {
-                var die = dice.Dice[i];
-                int value = die.IsHeld ? die.Value : _random.Next(1, 7);
-                row.Children.Add(BuildRollingDie(i, value, die.IsHeld));
-            }
+        row.Children.Clear();
+        var ease = new CubicEase { EasingMode = EasingMode.EaseOut };
 
-            await Task.Delay(45);
+        for (int i = 0; i < dice.Dice.Count; i++)
+        {
+            var die = dice.Dice[i];
+            var container = BuildRollingDie(i, die.Value, die.IsHeld);
+            row.Children.Add(container);
+
+            var transforms = (TransformGroup)container.RenderTransform;
+            var translate = (TranslateTransform)transforms.Children[0];
+            var scale = (ScaleTransform)transforms.Children[1];
+            var rotate = (RotateTransform)transforms.Children[2];
+            int delay = i * 28;
+            double startAngle = die.IsHeld ? 0 : _random.NextDouble() * 30 - 15;
+
+            var drop = new DoubleAnimation(-12, 0, TimeSpan.FromMilliseconds(300))
+            {
+                BeginTime = TimeSpan.FromMilliseconds(delay),
+                EasingFunction = ease,
+                FillBehavior = FillBehavior.Stop
+            };
+            translate.BeginAnimation(TranslateTransform.YProperty, drop);
+
+            var spin = new DoubleAnimation(startAngle, 0, TimeSpan.FromMilliseconds(300))
+            {
+                BeginTime = TimeSpan.FromMilliseconds(delay),
+                EasingFunction = ease,
+                FillBehavior = FillBehavior.Stop
+            };
+            rotate.BeginAnimation(RotateTransform.AngleProperty, spin);
+
+            var bounce = new DoubleAnimationUsingKeyFrames
+            {
+                BeginTime = TimeSpan.FromMilliseconds(delay),
+                FillBehavior = FillBehavior.Stop
+            };
+            bounce.KeyFrames.Add(new EasingDoubleKeyFrame(0.82, KeyTime.FromTimeSpan(TimeSpan.Zero)));
+            bounce.KeyFrames.Add(new EasingDoubleKeyFrame(1.06, KeyTime.FromTimeSpan(TimeSpan.FromMilliseconds(190)))
+            {
+                EasingFunction = ease
+            });
+            bounce.KeyFrames.Add(new EasingDoubleKeyFrame(1, KeyTime.FromTimeSpan(TimeSpan.FromMilliseconds(300)))
+            {
+                EasingFunction = ease
+            });
+            scale.BeginAnimation(ScaleTransform.ScaleXProperty, bounce);
+            scale.BeginAnimation(ScaleTransform.ScaleYProperty, bounce.Clone());
+
+            container.BeginAnimation(UIElement.OpacityProperty, new DoubleAnimation(
+                die.IsHeld ? 0.7 : 0.35,
+                die.IsHeld ? 0.55 : 1,
+                TimeSpan.FromMilliseconds(220))
+            {
+                BeginTime = TimeSpan.FromMilliseconds(delay),
+                EasingFunction = ease,
+                FillBehavior = FillBehavior.Stop
+            });
         }
+
+        await Task.Delay(360 + dice.Dice.Count * 28);
     }
 
     private FrameworkElement BuildRollingDie(int dieIndex, int value, bool held)
@@ -298,14 +351,14 @@ public partial class GameView : UserControl
                 CornerRadius = new CornerRadius(size * 0.18),
                 Background = _accentTintBrush
             });
-            return container;
         }
 
         var transforms = new TransformGroup();
-        double scale = 0.88 + _random.NextDouble() * 0.24;
-        transforms.Children.Add(new ScaleTransform(scale, scale));
-        transforms.Children.Add(new RotateTransform(_random.NextDouble() * 34 - 17));
+        transforms.Children.Add(new TranslateTransform());
+        transforms.Children.Add(new ScaleTransform(1, 1));
+        transforms.Children.Add(new RotateTransform());
         container.RenderTransform = transforms;
+        container.Opacity = held ? 0.55 : 1;
         return container;
     }
 
@@ -314,14 +367,14 @@ public partial class GameView : UserControl
         ShowPopup(
             L("L.Game.PausedTitle"),
             L("L.Game.PausedText"),
-            (L("L.Game.Yes"), () => { HidePopup(); _onExitToMenu(); }),
+            (L("L.Game.Yes"), () => { _botCts.Cancel(); HidePopup(); _onExitToMenu(); }),
             (L("L.Game.No"), HidePopup));
     }
 
     private async Task OnCellClick(int playerIndex, Column column, Row row)
     {
         var game = _lastGame;
-        if (game is null || playerIndex != game.CurrentPlayerIndex) return;
+        if (game is null || playerIndex != game.CurrentPlayerIndex || IsBotTurn(game)) return;
 
         await ExecuteAsync(async () =>
         {
@@ -409,7 +462,7 @@ public partial class GameView : UserControl
     private async Task OnDieClick(int playerIndex, int dieIndex)
     {
         var game = _lastGame;
-        if (game is null || playerIndex != game.CurrentPlayerIndex) return;
+        if (game is null || playerIndex != game.CurrentPlayerIndex || IsBotTurn(game)) return;
         if (game.RollNumber < 1 || game.RollNumber >= MaxRollsPerTurn) return;
 
         await ExecuteAsync(async () =>
@@ -437,6 +490,111 @@ public partial class GameView : UserControl
         }
     }
 
+    private static bool IsBotTurn(GameDto game) =>
+        game.Mode == GameMode.VersusComputer && game.CurrentPlayerIndex == 1;
+
+    private async Task RunBotTurnAsync()
+    {
+        if (_botRunning || _botCts.IsCancellationRequested) return;
+        _botRunning = true;
+
+        try
+        {
+            await Task.Delay(420, _botCts.Token);
+
+            while (!_botCts.IsCancellationRequested)
+            {
+                var game = await _gameService.GetGameAsync(_gameId);
+                if (game.IsGameOver || !IsBotTurn(game)) break;
+
+                if (game.RollNumber == 0)
+                {
+                    await _gameService.RollDiceAsync(_gameId, 1);
+                    await AnimateBotRollAsync();
+                    await RefreshAsync();
+                    await Task.Delay(480, _botCts.Token);
+                    continue;
+                }
+
+                if (game.RollNumber < MaxRollsPerTurn)
+                {
+                    foreach (int dieIndex in ChooseBotHolds(game))
+                        await _gameService.ToggleHoldAsync(_gameId, 1, dieIndex);
+
+                    await _gameService.RollDiceAsync(_gameId, 1);
+                    await AnimateBotRollAsync();
+                    await RefreshAsync();
+                    await Task.Delay(480, _botCts.Token);
+                    continue;
+                }
+
+                var moves = await _gameService.GetAvailableMovesAsync(_gameId, 1);
+                var best = moves
+                    .OrderByDescending(move => move.PreviewScore)
+                    .ThenBy(move => move.Column)
+                    .FirstOrDefault();
+                if (best is null) break;
+
+                await _gameService.WriteScoreAsync(_gameId, 1, best.Column, best.Row);
+                await RefreshAsync();
+                await Task.Delay(320, _botCts.Token);
+            }
+        }
+        catch (OperationCanceledException) when (_botCts.IsCancellationRequested)
+        {
+        }
+        catch (Exception ex) when (ex is DomainException or GameException)
+        {
+            MessageBox.Show(ErrorText.From(ex), Localization.Text("L.App.ErrorTitle"), MessageBoxButton.OK, MessageBoxImage.Warning);
+        }
+        finally
+        {
+            _botRunning = false;
+        }
+    }
+
+    private async Task AnimateBotRollAsync()
+    {
+        var fresh = await _gameService.GetGameAsync(_gameId);
+        await AnimateRollAsync(1, fresh.Dice);
+    }
+
+    private IReadOnlyList<int> ChooseBotHolds(GameDto game)
+    {
+        var bestNumberFace = _availableMoves
+            .Where(move => move.Key.PlayerIndex == 1 && FaceForRow(move.Key.Row) is int)
+            .Select(move => (Face: FaceForRow(move.Key.Row)!.Value, Score: move.Value))
+            .OrderByDescending(move => move.Score)
+            .Select(move => move.Face)
+            .FirstOrDefault();
+
+        int targetFace = bestNumberFace > 0
+            ? bestNumberFace
+            : game.Dice.Dice
+                .GroupBy(die => die.Value)
+                .OrderByDescending(group => group.Count())
+                .ThenByDescending(group => group.Key)
+                .Select(group => group.Key)
+                .FirstOrDefault();
+
+        return game.Dice.Dice
+            .Select((die, index) => (die, index))
+            .Where(item => !item.die.IsHeld && item.die.Value == targetFace)
+            .Select(item => item.index)
+            .ToList();
+    }
+
+    private static int? FaceForRow(Row row) => row switch
+    {
+        Row.Ones => 1,
+        Row.Twos => 2,
+        Row.Threes => 3,
+        Row.Fours => 4,
+        Row.Fives => 5,
+        Row.Sixes => 6,
+        _ => null
+    };
+
     private async Task RefreshAsync()
     {
         var game = await _gameService.GetGameAsync(_gameId);
@@ -461,13 +619,20 @@ public partial class GameView : UserControl
 
         UpdateAll(game);
 
-        if (game.IsGameOver) await HandleGameOverAsync(game);
+        if (game.IsGameOver)
+        {
+            await HandleGameOverAsync(game);
+            return;
+        }
+
+        if (IsBotTurn(game)) _ = RunBotTurnAsync();
     }
 
     private async Task HandleGameOverAsync(GameDto game)
     {
         if (_gameOverHandled) return;
         _gameOverHandled = true;
+        _botCts.Cancel();
 
         var message = new StringBuilder();
         foreach (var player in game.Players)
@@ -536,7 +701,12 @@ public partial class GameView : UserControl
     private void BuildLayout(GameDto game)
     {
         bool twoPlayers = game.Players.Count > 1;
-        HeaderText.Text = twoPlayers ? L("L.Game.TwoPlayer") : L("L.Game.SinglePlayer");
+        HeaderText.Text = game.Mode switch
+        {
+            GameMode.VersusComputer => L("L.Game.Bot"),
+            GameMode.TwoPlayer => L("L.Game.TwoPlayer"),
+            _ => L("L.Game.SinglePlayer")
+        };
         _columns = game.Columns;
         ContentGrid.Children.Clear();
         _sheets.Clear();
@@ -1113,12 +1283,14 @@ public partial class GameView : UserControl
 
         if (_statusRolls is not null)
         {
-            _statusRolls.Text = RollsText(game.RollNumber);
+            _statusRolls.Text = IsBotTurn(game) ? L("L.Game.BotThinking") : RollsText(game.RollNumber);
         }
 
         if (_rollButton is not null)
         {
-            _rollButton.IsEnabled = game.RollNumber < MaxRollsPerTurn && !game.IsGameOver;
+            _rollButton.IsEnabled = game.RollNumber < MaxRollsPerTurn
+                && !game.IsGameOver
+                && !IsBotTurn(game);
         }
 
         UpdateDice(game);
@@ -1128,7 +1300,7 @@ public partial class GameView : UserControl
     {
         var sheet = player.Scoresheet;
         bool active = view.PlayerIndex == game.CurrentPlayerIndex;
-        bool interactive = active && !game.IsGameOver;
+        bool interactive = active && !game.IsGameOver && !IsBotTurn(game);
 
         view.NameText.Text = player.Name;
         view.Card.BorderBrush = active ? _accentBrush : _borderBrush;
@@ -1225,7 +1397,8 @@ public partial class GameView : UserControl
             bool canHold = p == game.CurrentPlayerIndex
                 && game.RollNumber >= 1
                 && game.RollNumber < MaxRollsPerTurn
-                && !game.IsGameOver;
+                && !game.IsGameOver
+                && !IsBotTurn(game);
 
             for (int i = 0; i < dice.Dice.Count; i++)
             {

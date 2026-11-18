@@ -8,7 +8,7 @@ A modern Windows implementation of the Balkan dice game **Yamb**, built with .NE
 
 ## Features
 
-- Single-player and local two-player games.
+- Single-player, local two-player and play-against-bot games.
 - 4 to 10 score columns, with 5 or 6 dice.
 - Automatic and manual scoring modes.
 - Manual announcement confirmation after the third roll.
@@ -33,6 +33,10 @@ A modern Windows implementation of the Balkan dice game **Yamb**, built with .NE
 | Rose settings | Rose menu |
 | --- | --- |
 | ![Rose settings](docs/screenshots/10-settings-rose.png) | ![Rose menu](docs/screenshots/11-menu-rose.png) |
+
+| Bot mode | Bot game |
+| --- | --- |
+| ![Bot mode](docs/screenshots/12-bot-mode.png) | ![Bot game](docs/screenshots/13-bot-game.png) |
 
 ## Keyboard shortcuts
 

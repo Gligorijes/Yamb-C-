@@ -113,8 +113,12 @@ public sealed class GameService : IGameService
             .ToList();
         await _analytics.TrackGameCompletedAsync(game.Mode, finalScores);
 
+        var leaderboardScores = game.Mode == GameMode.VersusComputer
+            ? finalScores.Take(1).ToList()
+            : finalScores;
+
         bool highScore = false;
-        foreach (var player in finalScores)
+        foreach (var player in leaderboardScores)
         {
             if (await _leaderboardService.SubmitScoreAsync(player.Name, player.Score))
                 highScore = true;
@@ -122,9 +126,9 @@ public sealed class GameService : IGameService
 
         if (highScore)
         {
-            var bestScore = finalScores.Max(s => s.Score);
+            var bestScore = leaderboardScores.Max(s => s.Score);
             await _analytics.TrackHighScoreAchievedAsync(
-                bestScore, string.Join(", ", finalScores.Select(s => s.Name)));
+                bestScore, string.Join(", ", leaderboardScores.Select(s => s.Name)));
         }
     }
 

@@ -1,5 +1,12 @@
 # Istorija verzija / Build history
 
+## [1.0.0-alpha.4] - 2026-11-18
+- Dodat režim igre protiv bota sa posebnom karticom pri izboru broja igrača.
+- Bot baca kocke, bira kocke za zadržavanje i upisuje najbolji dostupni rezultat.
+- Rezultati bota se ne računaju u rang listu.
+- Ispravljeno sečenje teksta na karticama tema i režima igre.
+- Unapređeni pregledi tema, animacije prelaza i animacija bacanja kockica.
+
 ## [1.0.0-alpha.3] - 2026-11-18
 - Kompletan vizueli redizajn menija, podešavanja, igre, pomoći, sačuvanih partija i rang liste.
 - Dodate teme Ponoć, Smaragd, Zalazak i Roze pored tamne i svetle teme.

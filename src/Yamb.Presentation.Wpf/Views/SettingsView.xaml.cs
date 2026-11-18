@@ -49,8 +49,8 @@ public partial class SettingsView : UserControl
             var radio = new RadioButton
             {
                 GroupName = "Theme",
-                Height = 62,
-                Padding = new Thickness(12, 9, 9, 9),
+                MinHeight = 84,
+                Padding = new Thickness(12, 10, 10, 10),
                 Margin = new Thickness(0),
                 Style = (Style)FindResource("ModeCardStyle"),
                 Tag = info.Theme
@@ -59,45 +59,16 @@ public partial class SettingsView : UserControl
             radio.Checked += OnThemeChanged;
 
             var content = new Grid();
-            content.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(42) });
+            content.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(88) });
             content.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(12) });
             content.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
 
-            var accent = ParseBrush(info.AccentColor);
-            var tile = new Border
-            {
-                Width = 42,
-                Height = 42,
-                CornerRadius = new CornerRadius(12),
-                Background = ParseBrush(info.SurfaceColor),
-                BorderBrush = accent,
-                BorderThickness = new Thickness(1),
-                ClipToBounds = true,
-                VerticalAlignment = VerticalAlignment.Center
-            };
-
-            var tileGrid = new Grid();
-            tileGrid.Children.Add(new Border
-            {
-                Height = 4,
-                Background = accent,
-                VerticalAlignment = VerticalAlignment.Bottom
-            });
-            tileGrid.Children.Add(new Ellipse
-            {
-                Width = 16,
-                Height = 16,
-                Fill = accent,
-                HorizontalAlignment = HorizontalAlignment.Right,
-                VerticalAlignment = VerticalAlignment.Top,
-                Margin = new Thickness(0, 6, 5, 0)
-            });
-            tile.Child = tileGrid;
-
+            var thumbnail = BuildThemeThumbnail(info);
             var title = new TextBlock
             {
                 FontSize = 13.5,
-                FontWeight = FontWeights.SemiBold
+                FontWeight = FontWeights.SemiBold,
+                TextWrapping = TextWrapping.Wrap
             };
             title.SetResourceReference(TextBlock.TextProperty, info.NameKey);
 
@@ -105,6 +76,7 @@ public partial class SettingsView : UserControl
             {
                 FontSize = 10.5,
                 Foreground = (Brush)FindResource("MutedTextBrush"),
+                TextWrapping = TextWrapping.Wrap,
                 Margin = new Thickness(0, 3, 0, 0)
             };
             subtitle.SetResourceReference(TextBlock.TextProperty, info.DescriptionKey);
@@ -113,9 +85,9 @@ public partial class SettingsView : UserControl
             labels.Children.Add(title);
             labels.Children.Add(subtitle);
 
-            Grid.SetColumn(tile, 0);
+            Grid.SetColumn(thumbnail, 0);
             Grid.SetColumn(labels, 2);
-            content.Children.Add(tile);
+            content.Children.Add(thumbnail);
             content.Children.Add(labels);
             radio.Content = content;
 
@@ -126,11 +98,122 @@ public partial class SettingsView : UserControl
         }
     }
 
+    private static FrameworkElement BuildThemeThumbnail(ThemeInfo info)
+    {
+        var accent = ParseBrush(info.AccentColor);
+        var surface = ParseBrush(info.SurfaceColor);
+        var ink = ParseBrush(info.IsDark ? "#F7F5F0" : "#1D2430");
+
+        var frame = new Border
+        {
+            Width = 88,
+            Height = 58,
+            CornerRadius = new CornerRadius(9),
+            Background = surface,
+            BorderBrush = accent,
+            BorderThickness = new Thickness(1),
+            ClipToBounds = true,
+            VerticalAlignment = VerticalAlignment.Center
+        };
+
+        var root = new Grid();
+        root.Children.Add(new Border
+        {
+            Height = 5,
+            Background = accent,
+            VerticalAlignment = VerticalAlignment.Top
+        });
+
+        var dots = new StackPanel
+        {
+            Orientation = Orientation.Horizontal,
+            HorizontalAlignment = HorizontalAlignment.Right,
+            VerticalAlignment = VerticalAlignment.Top,
+            Margin = new Thickness(0, 9, 6, 0)
+        };
+        for (int i = 0; i < 3; i++)
+        {
+            dots.Children.Add(new Ellipse
+            {
+                Width = 4,
+                Height = 4,
+                Fill = accent,
+                Opacity = 0.45 + i * 0.22,
+                Margin = new Thickness(i == 0 ? 0 : 3, 0, 0, 0)
+            });
+        }
+        root.Children.Add(dots);
+
+        var miniCard = new Border
+        {
+            Width = 40,
+            Height = 28,
+            CornerRadius = new CornerRadius(5),
+            Background = Fade(accent, 0.16),
+            BorderBrush = Fade(accent, 0.55),
+            BorderThickness = new Thickness(1),
+            HorizontalAlignment = HorizontalAlignment.Left,
+            VerticalAlignment = VerticalAlignment.Top,
+            Margin = new Thickness(7, 13, 0, 0)
+        };
+        var lines = new StackPanel { Margin = new Thickness(7, 6, 0, 0) };
+        for (int i = 0; i < 3; i++)
+        {
+            lines.Children.Add(new Border
+            {
+                Width = i == 1 ? 18 : 26,
+                Height = 2,
+                CornerRadius = new CornerRadius(1),
+                Background = Fade(ink, i == 0 ? 0.75 : 0.35),
+                Margin = new Thickness(0, 0, 0, 4)
+            });
+        }
+        miniCard.Child = lines;
+        root.Children.Add(miniCard);
+
+        var dice = new StackPanel
+        {
+            Orientation = Orientation.Horizontal,
+            HorizontalAlignment = HorizontalAlignment.Right,
+            VerticalAlignment = VerticalAlignment.Bottom,
+            Margin = new Thickness(0, 0, 7, 7)
+        };
+        dice.Children.Add(new Border
+        {
+            Width = 14,
+            Height = 14,
+            CornerRadius = new CornerRadius(4),
+            Background = accent,
+            Margin = new Thickness(0, 0, 4, 0)
+        });
+        dice.Children.Add(new Border
+        {
+            Width = 14,
+            Height = 14,
+            CornerRadius = new CornerRadius(4),
+            Background = Fade(ink, 0.18),
+            BorderBrush = Fade(accent, 0.7),
+            BorderThickness = new Thickness(1)
+        });
+        root.Children.Add(dice);
+
+        frame.Child = root;
+        return frame;
+    }
+
     private static Brush ParseBrush(string color)
     {
         var brush = new SolidColorBrush((Color)ColorConverter.ConvertFromString(color));
         brush.Freeze();
         return brush;
+    }
+
+    private static Brush Fade(Brush brush, double opacity)
+    {
+        var clone = brush.Clone();
+        clone.Opacity *= opacity;
+        clone.Freeze();
+        return clone;
     }
 
     private void SetControlsFromSettings()
@@ -173,6 +256,7 @@ public partial class SettingsView : UserControl
         SaveSettings();
         ThemeManager.Apply(theme);
         RenderPreview();
+        UiAnimations.PopIn(radio, 0.2);
     }
 
     private void OnFaceStyleChanged(object sender, RoutedEventArgs e)

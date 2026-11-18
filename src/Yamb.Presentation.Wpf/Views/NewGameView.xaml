@@ -69,7 +69,7 @@
                                      Grid.Row="0"
                                      Grid.Column="0"
                                      GroupName="Columns"
-                                     Height="104"
+                                      MinHeight="118"
                                      Style="{StaticResource ModeCardStyle}"
                                      AutomationProperties.AutomationId="ColumnFour">
                             <StackPanel>
@@ -82,9 +82,10 @@
                                            FontWeight="SemiBold"
                                            Margin="0,2,0,0" />
                                 <TextBlock Text="{DynamicResource L.New.Variant4}"
-                                           FontSize="11.5"
-                                           Foreground="{DynamicResource MutedTextBrush}"
-                                           Margin="0,6,0,0" />
+                                            FontSize="11.5"
+                                            Foreground="{DynamicResource MutedTextBrush}"
+                                            TextWrapping="Wrap"
+                                            Margin="0,6,0,0" />
                             </StackPanel>
                         </RadioButton>
 
@@ -92,7 +93,7 @@
                                      Grid.Row="0"
                                      Grid.Column="2"
                                      GroupName="Columns"
-                                     Height="104"
+                                      MinHeight="118"
                                      Style="{StaticResource ModeCardStyle}"
                                      AutomationProperties.AutomationId="ColumnSix">
                             <StackPanel>
@@ -105,9 +106,10 @@
                                            FontWeight="SemiBold"
                                            Margin="0,2,0,0" />
                                 <TextBlock Text="{DynamicResource L.New.Variant6}"
-                                           FontSize="11.5"
-                                           Foreground="{DynamicResource MutedTextBrush}"
-                                           Margin="0,6,0,0" />
+                                            FontSize="11.5"
+                                            Foreground="{DynamicResource MutedTextBrush}"
+                                            TextWrapping="Wrap"
+                                            Margin="0,6,0,0" />
                             </StackPanel>
                         </RadioButton>
 
@@ -115,7 +117,7 @@
                                      Grid.Row="0"
                                      Grid.Column="4"
                                      GroupName="Columns"
-                                     Height="104"
+                                      MinHeight="118"
                                      IsChecked="True"
                                      Style="{StaticResource ModeCardStyle}"
                                      AutomationProperties.AutomationId="ColumnSeven">
@@ -129,9 +131,10 @@
                                            FontWeight="SemiBold"
                                            Margin="0,2,0,0" />
                                 <TextBlock Text="{DynamicResource L.New.Variant7}"
-                                           FontSize="11.5"
-                                           Foreground="{DynamicResource MutedTextBrush}"
-                                           Margin="0,6,0,0" />
+                                            FontSize="11.5"
+                                            Foreground="{DynamicResource MutedTextBrush}"
+                                            TextWrapping="Wrap"
+                                            Margin="0,6,0,0" />
                             </StackPanel>
                         </RadioButton>
 
@@ -139,7 +142,7 @@
                                      Grid.Row="2"
                                      Grid.Column="0"
                                      GroupName="Columns"
-                                     Height="104"
+                                      MinHeight="118"
                                      Style="{StaticResource ModeCardStyle}"
                                      AutomationProperties.AutomationId="ColumnEight">
                             <StackPanel>
@@ -152,9 +155,10 @@
                                            FontWeight="SemiBold"
                                            Margin="0,2,0,0" />
                                 <TextBlock Text="{DynamicResource L.New.Variant8}"
-                                           FontSize="11.5"
-                                           Foreground="{DynamicResource MutedTextBrush}"
-                                           Margin="0,6,0,0" />
+                                            FontSize="11.5"
+                                            Foreground="{DynamicResource MutedTextBrush}"
+                                            TextWrapping="Wrap"
+                                            Margin="0,6,0,0" />
                             </StackPanel>
                         </RadioButton>
 
@@ -162,7 +166,7 @@
                                      Grid.Row="2"
                                      Grid.Column="2"
                                      GroupName="Columns"
-                                     Height="104"
+                                      MinHeight="118"
                                      Style="{StaticResource ModeCardStyle}"
                                      AutomationProperties.AutomationId="ColumnNine">
                             <StackPanel>
@@ -175,9 +179,10 @@
                                            FontWeight="SemiBold"
                                            Margin="0,2,0,0" />
                                 <TextBlock Text="{DynamicResource L.New.Variant9}"
-                                           FontSize="11.5"
-                                           Foreground="{DynamicResource MutedTextBrush}"
-                                           Margin="0,6,0,0" />
+                                            FontSize="11.5"
+                                            Foreground="{DynamicResource MutedTextBrush}"
+                                            TextWrapping="Wrap"
+                                            Margin="0,6,0,0" />
                             </StackPanel>
                         </RadioButton>
 
@@ -185,7 +190,7 @@
                                      Grid.Row="2"
                                      Grid.Column="4"
                                      GroupName="Columns"
-                                     Height="104"
+                                      MinHeight="118"
                                      Style="{StaticResource ModeCardStyle}"
                                      AutomationProperties.AutomationId="ColumnTen">
                             <StackPanel>
@@ -198,9 +203,10 @@
                                            FontWeight="SemiBold"
                                            Margin="0,2,0,0" />
                                 <TextBlock Text="{DynamicResource L.New.Variant10}"
-                                           FontSize="11.5"
-                                           Foreground="{DynamicResource MutedTextBrush}"
-                                           Margin="0,6,0,0" />
+                                            FontSize="11.5"
+                                            Foreground="{DynamicResource MutedTextBrush}"
+                                            TextWrapping="Wrap"
+                                            Margin="0,6,0,0" />
                             </StackPanel>
                         </RadioButton>
                     </Grid>
@@ -234,15 +240,17 @@
                                Margin="0,6,0,0" />
 
                     <Grid Margin="0,20,0,0">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="14" />
-                            <ColumnDefinition Width="*" />
-                        </Grid.ColumnDefinitions>
+                         <Grid.ColumnDefinitions>
+                             <ColumnDefinition Width="*" />
+                             <ColumnDefinition Width="12" />
+                             <ColumnDefinition Width="*" />
+                             <ColumnDefinition Width="12" />
+                             <ColumnDefinition Width="*" />
+                         </Grid.ColumnDefinitions>
 
-                        <RadioButton x:Name="SingleRadio"
-                                     Grid.Column="0"
-                                     Height="118"
+                         <RadioButton x:Name="SingleRadio"
+                                      Grid.Column="0"
+                                      MinHeight="126"
                                      IsChecked="True"
                                      Style="{StaticResource ModeCardStyle}"
                                      Checked="OnModeChanged"
@@ -257,15 +265,16 @@
                                            FontWeight="SemiBold"
                                            Margin="0,2,0,0" />
                                 <TextBlock Text="{DynamicResource L.New.OnePlayerSubtitle}"
-                                           FontSize="11.5"
-                                           Foreground="{DynamicResource MutedTextBrush}"
-                                           Margin="0,6,0,0" />
+                                            FontSize="11.5"
+                                            Foreground="{DynamicResource MutedTextBrush}"
+                                            TextWrapping="Wrap"
+                                            Margin="0,6,0,0" />
                             </StackPanel>
                         </RadioButton>
 
-                        <RadioButton x:Name="TwoRadio"
-                                     Grid.Column="2"
-                                     Height="118"
+                         <RadioButton x:Name="TwoRadio"
+                                      Grid.Column="2"
+                                      MinHeight="126"
                                      Style="{StaticResource ModeCardStyle}"
                                      Checked="OnModeChanged"
                                      AutomationProperties.AutomationId="ModeTwo">
@@ -279,16 +288,55 @@
                                            FontWeight="SemiBold"
                                            Margin="0,2,0,0" />
                                 <TextBlock Text="{DynamicResource L.New.TwoPlayersSubtitle}"
-                                           FontSize="11.5"
-                                           Foreground="{DynamicResource MutedTextBrush}"
-                                           Margin="0,6,0,0" />
+                                            FontSize="11.5"
+                                            Foreground="{DynamicResource MutedTextBrush}"
+                                            TextWrapping="Wrap"
+                                            Margin="0,6,0,0" />
                             </StackPanel>
-                        </RadioButton>
-                    </Grid>
-                </StackPanel>
-            </Border>
+                         </RadioButton>
 
-            <Border x:Name="StepThreePanel"
+                         <RadioButton x:Name="BotRadio"
+                                      Grid.Column="4"
+                                      MinHeight="126"
+                                      Style="{StaticResource ModeCardStyle}"
+                                      Checked="OnModeChanged"
+                                      AutomationProperties.AutomationId="ModeBot">
+                             <Grid>
+                                 <StackPanel>
+                                     <Grid HorizontalAlignment="Left">
+                                         <TextBlock Text="BOT"
+                                                    FontSize="18"
+                                                    FontWeight="Bold"
+                                                    Foreground="{DynamicResource AccentBrush}" />
+                                         <Border Background="{DynamicResource AccentBrush}"
+                                                 CornerRadius="5"
+                                                 Padding="5,1"
+                                                 Margin="44,2,0,0"
+                                                 HorizontalAlignment="Left"
+                                                 VerticalAlignment="Center">
+                                             <TextBlock Text="{DynamicResource L.New.BotBadge}"
+                                                        FontSize="9"
+                                                        FontWeight="Bold"
+                                                        Foreground="{DynamicResource OnAccentBrush}" />
+                                         </Border>
+                                     </Grid>
+                                     <TextBlock Text="{DynamicResource L.New.Bot}"
+                                                FontSize="14"
+                                                FontWeight="SemiBold"
+                                                Margin="0,4,0,0" />
+                                     <TextBlock Text="{DynamicResource L.New.BotSubtitle}"
+                                                FontSize="11"
+                                                Foreground="{DynamicResource MutedTextBrush}"
+                                                TextWrapping="Wrap"
+                                                Margin="0,6,0,0" />
+                                 </StackPanel>
+                             </Grid>
+                         </RadioButton>
+                     </Grid>
+                 </StackPanel>
+             </Border>
+
+             <Border x:Name="StepThreePanel"
                     Background="{DynamicResource PanelGradientBrush}"
                     BorderBrush="{DynamicResource BorderBrush}"
                     BorderThickness="1"
@@ -323,7 +371,8 @@
                              AutomationProperties.AutomationId="Player1Name" />
 
                     <StackPanel x:Name="Player2Group" Visibility="Collapsed">
-                        <TextBlock Text="{DynamicResource L.New.Player2}"
+                        <TextBlock x:Name="Player2Label"
+                                   Text="{DynamicResource L.New.Player2}"
                                    FontSize="12.5"
                                    Foreground="{DynamicResource MutedTextBrush}"
                                    Margin="0,14,0,6" />

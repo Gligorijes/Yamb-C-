@@ -262,6 +262,32 @@ public class GameServiceTests
     }
 
     [Fact]
+    public async Task WriteScore_BotGameOver_SubmitsOnlyHumanToLeaderboard()
+    {
+        var gameId = Guid.NewGuid();
+        var cells = AllCellsZero()
+            .Where(c => !(c.Column == Column.Downward && c.Row == Row.Ones))
+            .ToList();
+        var snapshot = new GameSnapshot(
+            gameId, GameMode.VersusComputer, 0,
+            new[]
+            {
+                new PlayerSnapshot("Human", cells),
+                new PlayerSnapshot("Bot", cells)
+            },
+            new[] { 6, 6, 6, 6, 6, 1 }.Select(v => new Die(v)).ToList(),
+            1, null, true);
+        await _gameRepository.SaveAsync(YambGame.FromSnapshot(snapshot));
+
+        await _service.WriteScoreAsync(gameId, 0, Column.Downward, Row.Ones);
+        await _service.RollDiceAsync(gameId, 1);
+        await _service.WriteScoreAsync(gameId, 1, Column.Downward, Row.Ones);
+
+        _leaderboardRepository.Entries.Should().ContainSingle()
+            .Which.Participants.Should().Be("Human");
+    }
+
+    [Fact]
     public async Task GetAvailableMoves_BeforeAnyRoll_IsEmpty()
     {
         var game = await _service.StartGameAsync(SinglePlayerCommand());

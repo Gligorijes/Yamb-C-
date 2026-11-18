@@ -538,6 +538,43 @@ try {
         Check 'five dice game returns to menu' ($null -ne (Wait-El { Find-ById $mainEl 'MenuNewGame' }))
     }
 
+    Invoke-ById $mainEl 'MenuNewGame'
+    Invoke-ById $mainEl 'NewGameNext'
+    $modeBot = Wait-El { Find-ById $mainEl 'ModeBot' }
+    Check 'bot mode option present' ($null -ne $modeBot)
+    if ($modeBot) {
+        Select-El $modeBot
+        Invoke-ById $mainEl 'NewGameNext'
+        Invoke-ById $mainEl 'StartGame'
+        Check 'bot game loads' ($null -ne (Wait-El { Find-ById $mainEl 'RollButton' }))
+        Check 'bot game header' (Wait-Text $mainEl 'HeaderText' 'igra protiv bota')
+        Check 'bot dice rendered' ($null -ne (Wait-El { Find-ById $mainEl 'Die1_0' }))
+
+        Invoke-ById $mainEl 'RollButton'
+        Start-Sleep -Milliseconds 900
+        Invoke-ById $mainEl 'Cell_0_Downward_Ones'
+
+        $botWrote = $false
+        for ($i = 0; $i -lt 48; $i++) {
+            $filledBotCells = @(Get-CellsByIdPrefix $mainEl 'Cell_1_' | Where-Object { $_.Current.Name -match '^\d+$' })
+            if ($filledBotCells.Count -gt 0) { $botWrote = $true; break }
+            Start-Sleep -Milliseconds 250
+        }
+        Check 'bot writes a score' $botWrote
+
+        $humanReady = $false
+        for ($i = 0; $i -lt 24; $i++) {
+            $botRoll = Find-ById $mainEl 'RollButton'
+            if ($botRoll -and $botRoll.Current.IsEnabled) { $humanReady = $true; break }
+            Start-Sleep -Milliseconds 250
+        }
+        Check 'bot returns turn to human' $humanReady
+
+        Invoke-ById $mainEl 'MenuButton'
+        Invoke-Btn $mainEl 'Da'
+        Check 'bot game returns to menu' ($null -ne (Wait-El { Find-ById $mainEl 'MenuNewGame' }))
+    }
+
     Invoke-ById $mainEl 'MenuHelp'
     Check 'help view appears' (Wait-Text $mainEl 'HelpPage' '1/5')
     Invoke-ById $mainEl 'HelpNext'
@@ -545,7 +582,7 @@ try {
     Invoke-ById $mainEl 'HelpPrev'
     Check 'help page goes back' (Wait-Text $mainEl 'HelpPage' '1/5')
     $versionEl = Wait-El { Find-ById $mainEl 'HelpVersion' }
-    Check 'help shows build version' ($versionEl -and $versionEl.Current.Name -match '1\.0\.0-alpha\.3' -and $versionEl.Current.Name -match 'build 3')
+    Check 'help shows build version' ($versionEl -and $versionEl.Current.Name -match '1\.0\.0-alpha\.4' -and $versionEl.Current.Name -match 'build 4')
     for ($i = 0; $i -lt 4; $i++) {
         Invoke-ById $mainEl 'HelpNext'
         Start-Sleep -Milliseconds 250
