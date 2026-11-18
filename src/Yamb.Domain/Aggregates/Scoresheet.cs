@@ -138,12 +138,16 @@ public sealed class Scoresheet
             activeColumns = SheetDefinitions.DefaultColumns.ToList();
 
         var sheet = new Scoresheet(rules, activeColumns);
+        var scoring = new ScoringEngine(rules);
         foreach (var cell in snapshotCells)
         {
             if (sheet._cells.TryGetValue(cell.Column, out var rowCells) &&
                 rowCells.ContainsKey(cell.Row))
             {
-                rowCells[cell.Row] = new ScoreCell(cell.Value);
+                int? value = cell.Value;
+                if (value.HasValue && cell.Row is >= Row.Ones and <= Row.Sixes)
+                    value = Math.Clamp(value.Value, 0, scoring.GetMaximum(cell.Row));
+                rowCells[cell.Row] = new ScoreCell(value);
             }
         }
         return sheet;

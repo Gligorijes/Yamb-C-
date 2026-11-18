@@ -8,22 +8,24 @@ public class ScoringEngineTests
 {
     private readonly ScoringEngine _engine = new();
 
-    [Fact]
-    public void Ones_WithSixOnes_CountsAllSix()
+    [Theory]
+    [InlineData(Row.Ones, 1, 5)]
+    [InlineData(Row.Twos, 2, 10)]
+    [InlineData(Row.Threes, 3, 15)]
+    [InlineData(Row.Fours, 4, 20)]
+    [InlineData(Row.Fives, 5, 25)]
+    [InlineData(Row.Sixes, 6, 30)]
+    public void NumberRows_WithSixMatchingDice_CountAtMostFive(Row row, int face, int expected)
     {
-        _engine.Calculate(new[] { 1, 1, 1, 1, 1, 1 }, Row.Ones, 1).Should().Be(6);
+        var dice = Enumerable.Repeat(face, 6).ToArray();
+
+        _engine.Calculate(dice, row, 1).Should().Be(expected);
     }
 
     [Fact]
     public void Twos_WithThreeTwos_SumsMatchingDice()
     {
         _engine.Calculate(new[] { 2, 2, 2, 4, 5, 6 }, Row.Twos, 1).Should().Be(6);
-    }
-
-    [Fact]
-    public void Sixes_WithAllSixes_CountsAllSix()
-    {
-        _engine.Calculate(new[] { 6, 6, 6, 6, 6, 6 }, Row.Sixes, 1).Should().Be(36);
     }
 
     [Fact]

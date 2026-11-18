@@ -1,5 +1,9 @@
 # Istorija verzija / Build history
 
+## [1.0.0-alpha.5] - 2026-11-18
+- Ispravljeno: brojna polja sada koriste najviše pet kockica, pa šest istih kockica ne može dati veći rezultat.
+- Postojeće sačuvane partije sa pogrešnim brojem se pri učitavanju ispravljaju na najviše pet kockica.
+
 ## [1.0.0-alpha.4] - 2026-11-18
 - Dodat režim igre protiv bota sa posebnom karticom pri izboru broja igrača.
 - Bot baca kocke, bira kocke za zadržavanje i upisuje najbolji dostupni rezultat.

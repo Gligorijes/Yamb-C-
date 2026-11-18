@@ -62,7 +62,7 @@ public sealed class ScoringEngine
 
     private int CalculateNumbers(List<int> sorted, int face)
     {
-        int count = sorted.Count(v => v == face);
+        int count = Math.Min(sorted.Count(v => v == face), _rules.ScoringDiceCount);
         return count * face;
     }
 

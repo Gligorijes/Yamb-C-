@@ -114,6 +114,21 @@ public class ScoresheetTests
     }
 
     [Fact]
+    public void Restore_ClampsNumberRowsToScoringDiceLimit()
+    {
+        var restored = Scoresheet.Restore(
+            Yamb.Domain.Rules.GameRuleset.Default,
+            new[]
+            {
+                new Snapshots.CellSnapshot(Column.Downward, Row.Ones, 6),
+                new Snapshots.CellSnapshot(Column.Free, Row.Sixes, 36)
+            });
+
+        restored.GetCell(Column.Downward, Row.Ones).Should().Be(5);
+        restored.GetCell(Column.Free, Row.Sixes).Should().Be(30);
+    }
+
+    [Fact]
     public void CellCounts_TrackFilledAndTotal()
     {
         new Scoresheet().TotalCellCount.Should().Be(91);
