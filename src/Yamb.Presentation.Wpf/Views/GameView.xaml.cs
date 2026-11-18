@@ -83,6 +83,7 @@ public partial class GameView : UserControl
     }
 
     private readonly IGameService _gameService;
+    private readonly IBotAdvisor _botAdvisor;
     private readonly Guid _gameId;
     private readonly Action _onExitToMenu;
     private readonly Action _onGameOver;
@@ -126,6 +127,7 @@ public partial class GameView : UserControl
 
     public GameView(
         IGameService gameService,
+        IBotAdvisor botAdvisor,
         Guid gameId,
         Action onExitToMenu,
         Action onGameOver,
@@ -133,6 +135,7 @@ public partial class GameView : UserControl
     {
         InitializeComponent();
         _gameService = gameService;
+        _botAdvisor = botAdvisor;
         _gameId = gameId;
         _onExitToMenu = onExitToMenu;
         _onGameOver = onGameOver;
@@ -512,13 +515,15 @@ public partial class GameView : UserControl
                     await _gameService.RollDiceAsync(_gameId, 1);
                     await AnimateBotRollAsync();
                     await RefreshAsync();
+                    await TryBotAnnounceAsync();
                     await Task.Delay(480, _botCts.Token);
                     continue;
                 }
 
                 if (game.RollNumber < MaxRollsPerTurn)
                 {
-                    foreach (int dieIndex in ChooseBotHolds(game))
+                    var moves = await _gameService.GetAvailableMovesAsync(_gameId, 1);
+                    foreach (int dieIndex in _botAdvisor.ChooseDiceToHold(game, moves))
                         await _gameService.ToggleHoldAsync(_gameId, 1, dieIndex);
 
                     await _gameService.RollDiceAsync(_gameId, 1);
@@ -528,11 +533,8 @@ public partial class GameView : UserControl
                     continue;
                 }
 
-                var moves = await _gameService.GetAvailableMovesAsync(_gameId, 1);
-                var best = moves
-                    .OrderByDescending(move => move.PreviewScore)
-                    .ThenBy(move => move.Column)
-                    .FirstOrDefault();
+                var finalMoves = await _gameService.GetAvailableMovesAsync(_gameId, 1);
+                var best = _botAdvisor.ChooseMove(game, finalMoves);
                 if (best is null) break;
 
                 await _gameService.WriteScoreAsync(_gameId, 1, best.Column, best.Row);
@@ -553,47 +555,24 @@ public partial class GameView : UserControl
         }
     }
 
+    private async Task TryBotAnnounceAsync()
+    {
+        var game = await _gameService.GetGameAsync(_gameId);
+        if (game.AnnouncedRow.HasValue) return;
+
+        var moves = await _gameService.GetAvailableMovesAsync(_gameId, 1);
+        var row = _botAdvisor.ChooseAnnouncement(game, moves);
+        if (!row.HasValue) return;
+
+        await _gameService.AnnounceAsync(_gameId, 1, row.Value);
+        await RefreshAsync();
+    }
+
     private async Task AnimateBotRollAsync()
     {
         var fresh = await _gameService.GetGameAsync(_gameId);
         await AnimateRollAsync(1, fresh.Dice);
     }
-
-    private IReadOnlyList<int> ChooseBotHolds(GameDto game)
-    {
-        var bestNumberFace = _availableMoves
-            .Where(move => move.Key.PlayerIndex == 1 && FaceForRow(move.Key.Row) is int)
-            .Select(move => (Face: FaceForRow(move.Key.Row)!.Value, Score: move.Value))
-            .OrderByDescending(move => move.Score)
-            .Select(move => move.Face)
-            .FirstOrDefault();
-
-        int targetFace = bestNumberFace > 0
-            ? bestNumberFace
-            : game.Dice.Dice
-                .GroupBy(die => die.Value)
-                .OrderByDescending(group => group.Count())
-                .ThenByDescending(group => group.Key)
-                .Select(group => group.Key)
-                .FirstOrDefault();
-
-        return game.Dice.Dice
-            .Select((die, index) => (die, index))
-            .Where(item => !item.die.IsHeld && item.die.Value == targetFace)
-            .Select(item => item.index)
-            .ToList();
-    }
-
-    private static int? FaceForRow(Row row) => row switch
-    {
-        Row.Ones => 1,
-        Row.Twos => 2,
-        Row.Threes => 3,
-        Row.Fours => 4,
-        Row.Fives => 5,
-        Row.Sixes => 6,
-        _ => null
-    };
 
     private async Task RefreshAsync()
     {
@@ -1073,13 +1052,16 @@ public partial class GameView : UserControl
             var button = new Button
             {
                 Style = (Style)FindResource("SheetCellStyle"),
-                Tag = "empty"
+                Tag = "empty",
+                Focusable = true
             };
             AutomationProperties.SetAutomationId(button, $"Cell_{view.PlayerIndex}_{column}_{rowValue}");
             int playerIndex = view.PlayerIndex;
             button.Click += async (_, _) => await OnCellClick(playerIndex, column, rowValue);
             button.MouseEnter += (_, _) => ShowPreview(playerIndex, column, rowValue, button);
             button.MouseLeave += (_, _) => HidePreview(button);
+            button.GotFocus += (_, _) => ShowPreview(playerIndex, column, rowValue, button);
+            button.LostFocus += (_, _) => HidePreview(button);
             Grid.SetRow(button, row);
             Grid.SetColumn(button, c + 1);
             grid.Children.Add(button);

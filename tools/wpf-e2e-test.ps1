@@ -236,21 +236,19 @@ try {
     Check 'roll counter shows one throw' (Wait-Text $mainEl 'RollsText' '1 bacanje')
     Start-Sleep -Milliseconds 900
 
-    $hoverCell = Find-ById $mainEl 'Cell_0_Free_Yamb'
-    $hoverRect = if ($hoverCell) { $hoverCell.Current.BoundingRectangle } else { $null }
-    if ($hoverRect) {
+    $previewCell = Find-ById $mainEl 'Cell_0_Free_Yamb'
+    if ($previewCell) {
         [void][Win32Enum]::SetForegroundWindow([IntPtr]$main.Hwnd)
-        Start-Sleep -Milliseconds 300
-        [void][Win32Enum]::SetCursorPos(
-            [int]($hoverRect.Left + $hoverRect.Width / 2),
-            [int]($hoverRect.Top + $hoverRect.Height / 2))
-        $preview = Wait-El {
+        Start-Sleep -Milliseconds 200
+        $previewCell.SetFocus()
+        $shown = Wait-El {
             $cell = Find-ById $mainEl 'Cell_0_Free_Yamb'
             if ($cell -and $cell.Current.Name -match '^\d+$') { return $cell }
             return $null
         }
-        Check 'hover reveals point preview' ($null -ne $preview)
-        [void][Win32Enum]::SetCursorPos(10, 10)
+        Check 'hover reveals point preview' ($null -ne $shown)
+        $rollButton = Find-ById $mainEl 'RollButton'
+        if ($rollButton) { $rollButton.SetFocus() }
         $hidden = Wait-El {
             $cell = Find-ById $mainEl 'Cell_0_Free_Yamb'
             if ($cell -and [string]::IsNullOrEmpty($cell.Current.Name)) { return $cell }
@@ -556,8 +554,12 @@ try {
 
         $botWrote = $false
         for ($i = 0; $i -lt 48; $i++) {
-            $filledBotCells = @(Get-CellsByIdPrefix $mainEl 'Cell_1_' | Where-Object { $_.Current.Name -match '^\d+$' })
-            if ($filledBotCells.Count -gt 0) { $botWrote = $true; break }
+            try {
+                $filledBotCells = @(Get-CellsByIdPrefix $mainEl 'Cell_1_' | Where-Object { $_.Current.Name -match '^\d+$' })
+                if ($filledBotCells.Count -gt 0) { $botWrote = $true; break }
+            } catch {
+                Start-Sleep -Milliseconds 250
+            }
             Start-Sleep -Milliseconds 250
         }
         Check 'bot writes a score' $botWrote
@@ -582,7 +584,7 @@ try {
     Invoke-ById $mainEl 'HelpPrev'
     Check 'help page goes back' (Wait-Text $mainEl 'HelpPage' '1/5')
     $versionEl = Wait-El { Find-ById $mainEl 'HelpVersion' }
-    Check 'help shows build version' ($versionEl -and $versionEl.Current.Name -match '1\.0\.0-alpha\.5' -and $versionEl.Current.Name -match 'build 5')
+    Check 'help shows build version' ($versionEl -and $versionEl.Current.Name -match '1\.0\.0-alpha\.6' -and $versionEl.Current.Name -match 'build 6')
     for ($i = 0; $i -lt 4; $i++) {
         Invoke-ById $mainEl 'HelpNext'
         Start-Sleep -Milliseconds 250

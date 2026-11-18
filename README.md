@@ -8,7 +8,7 @@ A modern Windows implementation of the Balkan dice game **Yamb**, built with .NE
 
 ## Features
 
-- Single-player, local two-player and play-against-bot games.
+- Single-player, local two-player and play-against-bot games with strategic dice holding and maximum-column targeting.
 - 4 to 10 score columns, with 5 or 6 dice.
 - Automatic and manual scoring modes.
 - Manual announcement confirmation after the third roll.

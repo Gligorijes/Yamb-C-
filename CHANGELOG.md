@@ -1,5 +1,10 @@
 # Istorija verzija / Build history
 
+## [1.0.0-alpha.6] - 2026-11-18
+- Unapređen bot: sada procenjuje sve kombinacije zadržavanja kockica i bira potez prema očekivanom rezultatu posle bacanja.
+- Bot pažljivije bira najavu i prioritizuje redove koji isplaćuju u koloni Maksimum.
+- Pregled poena sada se prikazuje i kada se ćelija dobije fokus, ne samo pri hoveru mišem.
+
 ## [1.0.0-alpha.5] - 2026-11-18
 - Ispravljeno: brojna polja sada koriste najviše pet kockica, pa šest istih kockica ne može dati veći rezultat.
 - Postojeće sačuvane partije sa pogrešnim brojem se pri učitavanju ispravljaju na najviše pet kockica.

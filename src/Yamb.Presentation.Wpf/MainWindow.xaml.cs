@@ -15,16 +15,18 @@ public partial class MainWindow : Window
 {
     private readonly IGameService _gameService;
     private readonly ILeaderboardService _leaderboardService;
+    private readonly IBotAdvisor _botAdvisor;
     private bool _started;
     private bool _isFullscreen;
     private string _breadcrumbKey = "L.Nav.Menu";
     private WindowState _previousState = WindowState.Normal;
 
-    public MainWindow(IGameService gameService, ILeaderboardService leaderboardService)
+    public MainWindow(IGameService gameService, ILeaderboardService leaderboardService, IBotAdvisor botAdvisor)
     {
         InitializeComponent();
         _gameService = gameService;
         _leaderboardService = leaderboardService;
+        _botAdvisor = botAdvisor;
         Localization.LanguageChanged += OnLanguageChanged;
         Loaded += OnWindowLoaded;
     }
@@ -117,7 +119,7 @@ public partial class MainWindow : Window
     private void ShowGame(Guid gameId)
     {
         Navigate(
-            new GameView(_gameService, gameId, GoMenu, OnGameCompleted, () => ShowHelp(1)),
+            new GameView(_gameService, _botAdvisor, gameId, GoMenu, OnGameCompleted, () => ShowHelp(1)),
             "L.Nav.Game");
     }
 
