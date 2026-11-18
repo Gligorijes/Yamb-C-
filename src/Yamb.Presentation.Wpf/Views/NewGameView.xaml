@@ -27,7 +27,7 @@
 
         <Grid Grid.Row="1" Margin="0,22,0,0" VerticalAlignment="Top">
             <Border x:Name="StepOnePanel"
-                    Background="{DynamicResource PanelBrush}"
+                    Background="{DynamicResource PanelGradientBrush}"
                     BorderBrush="{DynamicResource BorderBrush}"
                     BorderThickness="1"
                     CornerRadius="18"
@@ -208,7 +208,7 @@
             </Border>
 
             <Border x:Name="StepTwoPanel"
-                    Background="{DynamicResource PanelBrush}"
+                    Background="{DynamicResource PanelGradientBrush}"
                     BorderBrush="{DynamicResource BorderBrush}"
                     BorderThickness="1"
                     CornerRadius="18"
@@ -289,7 +289,7 @@
             </Border>
 
             <Border x:Name="StepThreePanel"
-                    Background="{DynamicResource PanelBrush}"
+                    Background="{DynamicResource PanelGradientBrush}"
                     BorderBrush="{DynamicResource BorderBrush}"
                     BorderThickness="1"
                     CornerRadius="18"

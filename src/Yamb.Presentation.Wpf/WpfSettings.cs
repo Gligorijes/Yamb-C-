@@ -50,7 +50,9 @@ public static class WpfSettings
             FaceStyle = Enum.TryParse<DiceFaceStyle>(data.FaceStyle, out var style) ? style : DiceFaceStyle.Pips;
             DieSize = Math.Clamp(data.DieSize, 36, 72);
             DiceCount = Math.Clamp(data.DiceCount ?? 6, 5, 6);
-            Theme = Enum.TryParse<AppTheme>(data.Theme, out var theme) ? theme : AppTheme.Dark;
+            Theme = Enum.TryParse<AppTheme>(data.Theme, ignoreCase: true, out var theme) && ThemeManager.IsSupported(theme)
+                ? theme
+                : AppTheme.Dark;
             Language = Enum.TryParse<AppLanguage>(data.Language, out var language) ? language : AppLanguage.Serbian;
             AutoCalculate = data.AutoCalculate ?? true;
         }

@@ -87,7 +87,7 @@ public partial class GameView : UserControl
     private readonly Action _onGameOver;
     private readonly Action _onHelp;
 
-    private readonly Brush _panelBrush;
+    private readonly Brush _panelGradientBrush;
     private readonly Brush _borderBrush;
     private readonly Brush _borderStrongBrush;
     private readonly Brush _sheetFrameBrush;
@@ -100,6 +100,8 @@ public partial class GameView : UserControl
     private readonly Brush _blueBrush;
     private readonly Brush _greenBrush;
     private readonly Effect _dieShadow;
+    private readonly Effect _cardShadow;
+    private readonly Effect _accentGlow;
     private readonly Brush[] _dieBrushes;
 
     private readonly List<SheetView> _sheets = new();
@@ -133,7 +135,7 @@ public partial class GameView : UserControl
         _onGameOver = onGameOver;
         _onHelp = onHelp;
 
-        _panelBrush = (Brush)FindResource("PanelBrush");
+        _panelGradientBrush = (Brush)FindResource("PanelGradientBrush");
         _borderBrush = (Brush)FindResource("BorderBrush");
         _borderStrongBrush = (Brush)FindResource("BorderStrongBrush");
         _sheetFrameBrush = (Brush)FindResource("SheetFrameBrush");
@@ -146,6 +148,8 @@ public partial class GameView : UserControl
         _blueBrush = (Brush)FindResource("BlueBrush");
         _greenBrush = (Brush)FindResource("GreenBrush");
         _dieShadow = (Effect)FindResource("DieShadow");
+        _cardShadow = (Effect)FindResource("CardShadow");
+        _accentGlow = (Effect)FindResource("AccentGlow");
         _dieBrushes = new[]
         {
             (Brush)FindResource("DieMagentaBrush"),
@@ -753,8 +757,8 @@ public partial class GameView : UserControl
             Background = _sheetFrameBrush,
             BorderBrush = _borderBrush,
             BorderThickness = new Thickness(1),
-            CornerRadius = new CornerRadius(8),
-            Padding = new Thickness(3),
+            CornerRadius = new CornerRadius(11),
+            Padding = new Thickness(4),
             Child = sheetGrid
         };
 
@@ -783,8 +787,8 @@ public partial class GameView : UserControl
         var resultStrip = new Border
         {
             Background = _sumBandBrush,
-            CornerRadius = new CornerRadius(10),
-            Padding = new Thickness(14, 6, 14, 6),
+            CornerRadius = new CornerRadius(12),
+            Padding = new Thickness(14, 7, 14, 7),
             Margin = new Thickness(0, 10, 0, 0),
             Child = footer
         };
@@ -1054,11 +1058,12 @@ public partial class GameView : UserControl
 
     private Border MakeCard(UIElement content, Thickness padding) => new()
     {
-        Background = _panelBrush,
+        Background = _panelGradientBrush,
         BorderBrush = _borderBrush,
         BorderThickness = new Thickness(1),
         CornerRadius = new CornerRadius(18),
         Padding = padding,
+        Effect = _cardShadow,
         Child = content,
         VerticalAlignment = VerticalAlignment.Top
     };
@@ -1128,7 +1133,8 @@ public partial class GameView : UserControl
         view.NameText.Text = player.Name;
         view.Card.BorderBrush = active ? _accentBrush : _borderBrush;
         view.Card.BorderThickness = new Thickness(active ? 2 : 1);
-        view.Card.Opacity = active ? 1.0 : 0.68;
+        view.Card.Effect = active ? _accentGlow : _cardShadow;
+        view.Card.Opacity = active ? 1.0 : 0.72;
         view.ActiveBadge.Visibility = active ? Visibility.Visible : Visibility.Collapsed;
 
         foreach (var ((column, row), button) in view.Cells)

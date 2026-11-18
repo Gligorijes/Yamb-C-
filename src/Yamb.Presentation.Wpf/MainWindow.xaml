@@ -21,6 +21,15 @@
                      Margin="0,-460,0,0"
                      IsHitTestVisible="False" />
 
+            <Ellipse Width="560"
+                     Height="560"
+                     Fill="{DynamicResource WindowGlowSecondaryBrush}"
+                     HorizontalAlignment="Right"
+                     VerticalAlignment="Bottom"
+                     Margin="0,0,-210,-300"
+                     Opacity="0.65"
+                     IsHitTestVisible="False" />
+
             <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />
@@ -28,38 +37,47 @@
                 </Grid.RowDefinitions>
 
                 <Border Grid.Row="0"
-                        Height="56"
-                        Background="Transparent"
+                        Height="62"
+                        Background="{DynamicResource TitleBarBrush}"
+                        BorderBrush="{DynamicResource BorderBrush}"
+                        BorderThickness="0,0,0,1"
                         MouseLeftButtonDown="OnTitleBarMouseDown">
                     <Grid Margin="20,0,12,0">
                         <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                            <Border Width="28"
-                                    Height="28"
-                                    CornerRadius="9"
+                            <Border Width="30"
+                                    Height="30"
+                                    CornerRadius="10"
                                     Background="{DynamicResource AccentButtonBrush}"
+                                    Effect="{DynamicResource AccentGlow}"
                                     VerticalAlignment="Center">
                                 <TextBlock Text="Y"
                                            Foreground="{DynamicResource OnAccentBrush}"
-                                           FontSize="15"
+                                           FontSize="16"
                                            FontWeight="Bold"
                                            HorizontalAlignment="Center"
                                            VerticalAlignment="Center" />
                             </Border>
                             <TextBlock Text="YAMB"
-                                       FontSize="14"
+                                       FontSize="15"
                                        FontWeight="Bold"
                                        Foreground="{DynamicResource TextBrush}"
                                        VerticalAlignment="Center"
-                                       Margin="10,0,0,0" />
+                                       Margin="11,0,0,0" />
                             <Border Width="1"
                                     Height="18"
                                     Background="{DynamicResource BorderBrush}"
                                     Margin="16,0"
                                     VerticalAlignment="Center" />
-                            <TextBlock x:Name="BreadcrumbText"
-                                       FontSize="12.5"
-                                       Foreground="{DynamicResource MutedTextBrush}"
-                                       VerticalAlignment="Center" />
+                            <Border Background="{DynamicResource SurfaceAltBrush}"
+                                    BorderBrush="{DynamicResource BorderBrush}"
+                                    BorderThickness="1"
+                                    CornerRadius="9"
+                                    Padding="11,5">
+                                <TextBlock x:Name="BreadcrumbText"
+                                           FontSize="12.5"
+                                           Foreground="{DynamicResource MutedTextBrush}"
+                                           VerticalAlignment="Center" />
+                            </Border>
                         </StackPanel>
 
                         <StackPanel Orientation="Horizontal"
@@ -79,7 +97,7 @@
                                     Click="OnMinimizeClick"
                                     AutomationProperties.AutomationId="WindowMinimize" />
                             <Button Content="&#x2715;"
-                                    Style="{StaticResource CaptionButtonStyle}"
+                                    Style="{StaticResource CloseCaptionButtonStyle}"
                                     Margin="4,0,0,0"
                                     Click="OnCloseClick"
                                     AutomationProperties.AutomationId="WindowClose" />
@@ -89,10 +107,14 @@
 
                 <ContentControl x:Name="PageHost"
                                 Grid.Row="1"
-                                Margin="28,4,28,24"
+                                Margin="28,12,28,24"
                                 Focusable="False" />
             </Grid>
+
+            <Rectangle Height="3"
+                       Fill="{DynamicResource TopAccentBrush}"
+                       VerticalAlignment="Top"
+                       IsHitTestVisible="False" />
         </Grid>
     </Border>
 </Window>
-

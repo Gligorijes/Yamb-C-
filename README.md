@@ -14,7 +14,7 @@ A modern Windows implementation of the Balkan dice game **Yamb**, built with .NE
 - Manual announcement confirmation after the third roll.
 - Saved-game chooser with player summaries, progress, continue and delete actions.
 - Local top-50 leaderboard with a separate entry for each player.
-- Cream dark theme and blue light theme.
+- Six themes: Dark, Light, Midnight, Emerald, Sunset and Rose.
 - Serbian and English interface.
 - Keyboard shortcuts, F1 help and searchable rules.
 - Pips, numbers and Roman-numeral dice faces.
@@ -29,6 +29,10 @@ A modern Windows implementation of the Balkan dice game **Yamb**, built with .NE
 | Settings | Help and rules |
 | --- | --- |
 | ![Settings](docs/screenshots/05-settings-light.png) | ![Help](docs/screenshots/08-help-rules.png) |
+
+| Rose settings | Rose menu |
+| --- | --- |
+| ![Rose settings](docs/screenshots/10-settings-rose.png) | ![Rose menu](docs/screenshots/11-menu-rose.png) |
 
 ## Keyboard shortcuts
 

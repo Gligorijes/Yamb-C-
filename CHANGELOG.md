@@ -1,5 +1,12 @@
 # Istorija verzija / Build history
 
+## [1.0.0-alpha.3] - 2026-11-18
+- Kompletan vizueli redizajn menija, podešavanja, igre, pomoći, sačuvanih partija i rang liste.
+- Dodate teme Ponoć, Smaragd, Zalazak i Roze pored tamne i svetle teme.
+- Nova mreža tema sa bojama, opisima, trenutnom primenom i lokalizovanim nazivima.
+- Unapređeni globalni stilovi: gradijenti, senke, hover efekti, skrolbari i ambijentalni sjaj.
+- Osveženi dokazi o verziji, snimci ekrana i automatizovane provere za šest tema.
+
 ## [1.0.0-alpha.2] - 2026-11-16
 - Najava se posle trećeg bacanja potvrđuje ručno, bez automatskog upisa.
 - Rang lista prikazuje 50 rezultata i svakog igrača unosi zasebno.

@@ -1,7 +1,9 @@
 ﻿using System.Windows;
+using System.Windows.Automation;
 using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Media.Effects;
+using System.Windows.Shapes;
 
 namespace Yamb.Presentation.Wpf.Views;
 
@@ -10,6 +12,7 @@ public partial class SettingsView : UserControl
     private readonly Action _onBack;
     private readonly Effect _dieShadow;
     private readonly Thickness _dieMargin = new(4);
+    private readonly Dictionary<AppTheme, RadioButton> _themeRadios = new();
     private bool _loaded;
 
     public SettingsView(Action onBack)
@@ -18,6 +21,7 @@ public partial class SettingsView : UserControl
         _onBack = onBack;
 
         _dieShadow = (Effect)FindResource("DieShadow");
+        BuildThemeCards();
         SetControlsFromSettings();
 
         _loaded = true;
@@ -34,10 +38,108 @@ public partial class SettingsView : UserControl
         }
     }
 
+    private void BuildThemeCards()
+    {
+        ThemeGrid.Children.Clear();
+        _themeRadios.Clear();
+
+        for (int i = 0; i < ThemeManager.Themes.Count; i++)
+        {
+            var info = ThemeManager.Themes[i];
+            var radio = new RadioButton
+            {
+                GroupName = "Theme",
+                Height = 62,
+                Padding = new Thickness(12, 9, 9, 9),
+                Margin = new Thickness(0),
+                Style = (Style)FindResource("ModeCardStyle"),
+                Tag = info.Theme
+            };
+            AutomationProperties.SetAutomationId(radio, info.AutomationId);
+            radio.Checked += OnThemeChanged;
+
+            var content = new Grid();
+            content.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(42) });
+            content.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(12) });
+            content.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+
+            var accent = ParseBrush(info.AccentColor);
+            var tile = new Border
+            {
+                Width = 42,
+                Height = 42,
+                CornerRadius = new CornerRadius(12),
+                Background = ParseBrush(info.SurfaceColor),
+                BorderBrush = accent,
+                BorderThickness = new Thickness(1),
+                ClipToBounds = true,
+                VerticalAlignment = VerticalAlignment.Center
+            };
+
+            var tileGrid = new Grid();
+            tileGrid.Children.Add(new Border
+            {
+                Height = 4,
+                Background = accent,
+                VerticalAlignment = VerticalAlignment.Bottom
+            });
+            tileGrid.Children.Add(new Ellipse
+            {
+                Width = 16,
+                Height = 16,
+                Fill = accent,
+                HorizontalAlignment = HorizontalAlignment.Right,
+                VerticalAlignment = VerticalAlignment.Top,
+                Margin = new Thickness(0, 6, 5, 0)
+            });
+            tile.Child = tileGrid;
+
+            var title = new TextBlock
+            {
+                FontSize = 13.5,
+                FontWeight = FontWeights.SemiBold
+            };
+            title.SetResourceReference(TextBlock.TextProperty, info.NameKey);
+
+            var subtitle = new TextBlock
+            {
+                FontSize = 10.5,
+                Foreground = (Brush)FindResource("MutedTextBrush"),
+                Margin = new Thickness(0, 3, 0, 0)
+            };
+            subtitle.SetResourceReference(TextBlock.TextProperty, info.DescriptionKey);
+
+            var labels = new StackPanel { VerticalAlignment = VerticalAlignment.Center };
+            labels.Children.Add(title);
+            labels.Children.Add(subtitle);
+
+            Grid.SetColumn(tile, 0);
+            Grid.SetColumn(labels, 2);
+            content.Children.Add(tile);
+            content.Children.Add(labels);
+            radio.Content = content;
+
+            Grid.SetColumn(radio, i % 3 == 0 ? 0 : i % 3 == 1 ? 2 : 4);
+            Grid.SetRow(radio, i < 3 ? 0 : 2);
+            ThemeGrid.Children.Add(radio);
+            _themeRadios[info.Theme] = radio;
+        }
+    }
+
+    private static Brush ParseBrush(string color)
+    {
+        var brush = new SolidColorBrush((Color)ColorConverter.ConvertFromString(color));
+        brush.Freeze();
+        return brush;
+    }
+
     private void SetControlsFromSettings()
     {
-        ThemeDarkRadio.IsChecked = WpfSettings.Theme == AppTheme.Dark;
-        ThemeLightRadio.IsChecked = WpfSettings.Theme == AppTheme.Light;
+        foreach (var pair in _themeRadios)
+        {
+            pair.Value.IsChecked = WpfSettings.Theme == pair.Key;
+        }
+
         PipsRadio.IsChecked = WpfSettings.FaceStyle == DiceFaceStyle.Pips;
         NumbersRadio.IsChecked = WpfSettings.FaceStyle == DiceFaceStyle.Numbers;
         RomanRadio.IsChecked = WpfSettings.FaceStyle == DiceFaceStyle.Roman;
@@ -64,9 +166,7 @@ public partial class SettingsView : UserControl
 
     private void OnThemeChanged(object sender, RoutedEventArgs e)
     {
-        if (!_loaded) return;
-
-        var theme = ThemeLightRadio.IsChecked == true ? AppTheme.Light : AppTheme.Dark;
+        if (!_loaded || sender is not RadioButton radio || radio.Tag is not AppTheme theme) return;
         if (WpfSettings.Theme == theme && ThemeManager.Current == theme) return;
 
         WpfSettings.Theme = theme;
@@ -132,7 +232,7 @@ public partial class SettingsView : UserControl
         if (PreviewPanel is null) return;
 
         PreviewPanel.Children.Clear();
-        double size = Math.Min(WpfSettings.DieSize, 52);
+        double size = Math.Min(WpfSettings.DieSize, 48);
 
         var brushes = new[]
         {

@@ -16,11 +16,10 @@ public partial class MenuView : UserControl
         InitializeComponent();
 
         DiceChipText.Text = Localization.Format("L.Menu.DiceCount", WpfSettings.DiceCount);
+        var theme = ThemeManager.Info(WpfSettings.Theme);
         ThemeChipText.Text = Localization.Format(
             "L.Menu.ThemeChip",
-            Localization.Text(WpfSettings.Theme == AppTheme.Dark
-                ? "L.Settings.ThemeDark"
-                : "L.Settings.ThemeLight"));
+            Localization.Text(theme.NameKey));
         ScoringChipText.Text = Localization.Text(
             WpfSettings.AutoCalculate ? "L.Menu.AutoOn" : "L.Menu.AutoOff");
 

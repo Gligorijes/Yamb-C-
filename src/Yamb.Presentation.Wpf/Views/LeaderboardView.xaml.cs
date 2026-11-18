@@ -75,6 +75,7 @@ public partial class LeaderboardView : UserControl
         var mutedBrush = (Brush)FindResource("MutedTextBrush");
         var accentBrush = (Brush)FindResource("AccentBrush");
         var surfaceBrush = (Brush)FindResource("SurfaceAltBrush");
+        var borderBrush = (Brush)FindResource("BorderBrush");
 
         var grid = new Grid();
         grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(70) });
@@ -93,9 +94,12 @@ public partial class LeaderboardView : UserControl
             grid.Children.Add(element);
         }
 
+        bool podium = index < 3;
         return new Border
         {
             Background = index % 2 == 0 ? surfaceBrush : Brushes.Transparent,
+            BorderBrush = podium ? accentBrush : borderBrush,
+            BorderThickness = podium ? new Thickness(1) : new Thickness(0),
             CornerRadius = new CornerRadius(10),
             Padding = new Thickness(10, 6, 10, 6),
             Margin = new Thickness(0, 2, 0, 2),

@@ -454,11 +454,21 @@ try {
 
         $themeLight = Wait-El { Find-ById $mainEl 'ThemeLight' }
         Check 'theme option present' ($null -ne $themeLight)
+        $themeIds = @('ThemeDark', 'ThemeLight', 'ThemeMidnight', 'ThemeEmerald', 'ThemeSunset', 'ThemeRose')
+        $themeOptions = @($themeIds | ForEach-Object { Find-ById $mainEl $_ } | Where-Object { $_ })
+        Check 'six theme options present' ($themeOptions.Count -eq 6)
         if ($themeLight) {
             Select-El $themeLight
             Start-Sleep -Milliseconds 900
             $settingsJson = if (Test-Path (Join-Path $dataDir 'settings.json')) { Get-Content -Raw (Join-Path $dataDir 'settings.json') } else { '' }
             Check 'light theme persists' ($settingsJson -match '"Theme":"Light"')
+            $themeMidnight = Find-ById $mainEl 'ThemeMidnight'
+            if ($themeMidnight) {
+                Select-El $themeMidnight
+                Start-Sleep -Milliseconds 700
+                $settingsJson = Get-Content -Raw (Join-Path $dataDir 'settings.json')
+                Check 'midnight theme persists' ($settingsJson -match '"Theme":"Midnight"')
+            }
             $themeDark = Find-ById $mainEl 'ThemeDark'
             if ($themeDark) {
                 Select-El $themeDark
@@ -535,7 +545,7 @@ try {
     Invoke-ById $mainEl 'HelpPrev'
     Check 'help page goes back' (Wait-Text $mainEl 'HelpPage' '1/5')
     $versionEl = Wait-El { Find-ById $mainEl 'HelpVersion' }
-    Check 'help shows build version' ($versionEl -and $versionEl.Current.Name -match '1\.0\.0-alpha\.2' -and $versionEl.Current.Name -match 'build 2')
+    Check 'help shows build version' ($versionEl -and $versionEl.Current.Name -match '1\.0\.0-alpha\.3' -and $versionEl.Current.Name -match 'build 3')
     for ($i = 0; $i -lt 4; $i++) {
         Invoke-ById $mainEl 'HelpNext'
         Start-Sleep -Milliseconds 250

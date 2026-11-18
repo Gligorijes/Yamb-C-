@@ -1,0 +1,87 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <SolidColorBrush x:Key="BgBrush" Color="#FFF1F4" />
+    <SolidColorBrush x:Key="PanelBrush" Color="#FFFFFF" />
+    <SolidColorBrush x:Key="SurfaceAltBrush" Color="#FFF5F7" />
+    <SolidColorBrush x:Key="ElevatedBrush" Color="#FFF9FA" />
+    <SolidColorBrush x:Key="HoverCellBrush" Color="#FFE4EC" />
+    <SolidColorBrush x:Key="AccentSoftBrush" Color="#FCE4EC" />
+    <SolidColorBrush x:Key="LabelBrush" Color="#FADDE6" />
+    <SolidColorBrush x:Key="CellBrush" Color="#FFFFFF" />
+    <SolidColorBrush x:Key="SheetFrameBrush" Color="#E8B9C9" />
+    <SolidColorBrush x:Key="HeaderBandBrush" Color="#FFE0E9" />
+    <SolidColorBrush x:Key="SumBandBrush" Color="#FBD3DF" />
+    <SolidColorBrush x:Key="BorderBrush" Color="#F0C2D0" />
+    <SolidColorBrush x:Key="BorderStrongBrush" Color="#D98AA6" />
+    <SolidColorBrush x:Key="TextBrush" Color="#401725" />
+    <SolidColorBrush x:Key="MutedTextBrush" Color="#8B5468" />
+    <SolidColorBrush x:Key="AccentBrush" Color="#D6336C" />
+    <SolidColorBrush x:Key="AccentHoverBrush" Color="#E64980" />
+    <SolidColorBrush x:Key="AccentPressedBrush" Color="#B01E4D" />
+    <SolidColorBrush x:Key="OnAccentBrush" Color="#FFFFFF" />
+    <SolidColorBrush x:Key="HeroSubtitleBrush" Color="#FCE0EA" />
+    <SolidColorBrush x:Key="HeroOverlayBrush" Color="#22000000" />
+    <SolidColorBrush x:Key="RedBrush" Color="#C9184A" />
+    <SolidColorBrush x:Key="DangerBrush" Color="#C9184A" />
+    <SolidColorBrush x:Key="BlueBrush" Color="#3A6EA5" />
+    <SolidColorBrush x:Key="GreenBrush" Color="#16855F" />
+    <SolidColorBrush x:Key="CyanBrush" Color="#147D95" />
+    <SolidColorBrush x:Key="WarningBrush" Color="#9A6008" />
+    <SolidColorBrush x:Key="AnnouncedBrush" Color="#FFE0E7" />
+    <SolidColorBrush x:Key="PopupShadeBrush" Color="#66401A2A" />
+    <SolidColorBrush x:Key="TransparentBrush" Color="Transparent" />
+    <SolidColorBrush x:Key="TitleBarBrush" Color="#E6FFF8FA" />
+    <SolidColorBrush x:Key="SettingsIconBrush" Color="#FCE4EC" />
+    <SolidColorBrush x:Key="LeaderboardIconBrush" Color="#FFF0CF" />
+    <SolidColorBrush x:Key="HelpIconBrush" Color="#DDF3F6" />
+    <SolidColorBrush x:Key="ExitIconBrush" Color="#FFE0E7" />
+
+    <SolidColorBrush x:Key="DieMagentaBrush" Color="#D6336C" />
+    <SolidColorBrush x:Key="DieYellowBrush" Color="#D99A13" />
+    <SolidColorBrush x:Key="DieBlueBrush" Color="#3A6EA5" />
+    <SolidColorBrush x:Key="DieGreenBrush" Color="#16855F" />
+    <SolidColorBrush x:Key="DieRedBrush" Color="#C9184A" />
+    <SolidColorBrush x:Key="DieWhiteBrush" Color="#FFFFFF" />
+
+    <DropShadowEffect x:Key="AccentGlow" Color="#D6336C" BlurRadius="22" ShadowDepth="0" Opacity="0.3" />
+
+    <LinearGradientBrush x:Key="AppBackgroundBrush" StartPoint="0,0" EndPoint="1,1">
+        <GradientStop Color="#FFF8FA" Offset="0" />
+        <GradientStop Color="#FFF1F4" Offset="0.55" />
+        <GradientStop Color="#FCE0E9" Offset="1" />
+    </LinearGradientBrush>
+
+    <RadialGradientBrush x:Key="GlowBrush" GradientOrigin="0.5,0.5" Center="0.5,0.5" RadiusX="0.5" RadiusY="0.5">
+        <GradientStop Color="#33D6336C" Offset="0" />
+        <GradientStop Color="#00D6336C" Offset="1" />
+    </RadialGradientBrush>
+
+    <RadialGradientBrush x:Key="WindowGlowSecondaryBrush" GradientOrigin="0.5,0.5" Center="0.5,0.5" RadiusX="0.5" RadiusY="0.5">
+        <GradientStop Color="#334DABFF" Offset="0" />
+        <GradientStop Color="#004DABFF" Offset="1" />
+    </RadialGradientBrush>
+
+    <LinearGradientBrush x:Key="TopAccentBrush" StartPoint="0,0" EndPoint="1,0">
+        <GradientStop Color="#D6336C" Offset="0" />
+        <GradientStop Color="#FF758F" Offset="0.55" />
+        <GradientStop Color="#FFB3C6" Offset="1" />
+    </LinearGradientBrush>
+
+    <LinearGradientBrush x:Key="AccentButtonBrush" StartPoint="0,0" EndPoint="1,1">
+        <GradientStop Color="#E64980" Offset="0" />
+        <GradientStop Color="#A4123F" Offset="1" />
+    </LinearGradientBrush>
+
+    <LinearGradientBrush x:Key="HeroBackgroundBrush" StartPoint="0,0" EndPoint="1,1">
+        <GradientStop Color="#E64980" Offset="0" />
+        <GradientStop Color="#D6336C" Offset="0.55" />
+        <GradientStop Color="#A4123F" Offset="1" />
+    </LinearGradientBrush>
+
+    <LinearGradientBrush x:Key="PanelGradientBrush" StartPoint="0,0" EndPoint="1,1">
+        <GradientStop Color="#FFFFFF" Offset="0" />
+        <GradientStop Color="#FFF7F9" Offset="1" />
+    </LinearGradientBrush>
+
+</ResourceDictionary>

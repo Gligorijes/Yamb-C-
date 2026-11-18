@@ -29,25 +29,45 @@
                     HorizontalAlignment="Center"
                     VerticalAlignment="Center">
 
-            <WrapPanel HorizontalAlignment="Center"
-                       Margin="0,0,0,16">
+            <WrapPanel HorizontalAlignment="Center" Margin="0,0,0,16">
                 <Border Style="{StaticResource MenuChipStyle}">
-                    <TextBlock x:Name="DiceChipText"
-                               FontSize="12"
-                               FontWeight="SemiBold"
-                               Foreground="{DynamicResource TextBrush}" />
+                    <StackPanel Orientation="Horizontal">
+                        <Ellipse Width="6"
+                                 Height="6"
+                                 Fill="{DynamicResource AccentBrush}"
+                                 Margin="0,0,8,0"
+                                 VerticalAlignment="Center" />
+                        <TextBlock x:Name="DiceChipText"
+                                   FontSize="12"
+                                   FontWeight="SemiBold"
+                                   Foreground="{DynamicResource TextBrush}" />
+                    </StackPanel>
                 </Border>
                 <Border Style="{StaticResource MenuChipStyle}">
-                    <TextBlock x:Name="ThemeChipText"
-                               FontSize="12"
-                               FontWeight="SemiBold"
-                               Foreground="{DynamicResource TextBrush}" />
+                    <StackPanel Orientation="Horizontal">
+                        <Ellipse Width="6"
+                                 Height="6"
+                                 Fill="{DynamicResource CyanBrush}"
+                                 Margin="0,0,8,0"
+                                 VerticalAlignment="Center" />
+                        <TextBlock x:Name="ThemeChipText"
+                                   FontSize="12"
+                                   FontWeight="SemiBold"
+                                   Foreground="{DynamicResource TextBrush}" />
+                    </StackPanel>
                 </Border>
                 <Border Style="{StaticResource MenuChipStyle}">
-                    <TextBlock x:Name="ScoringChipText"
-                               FontSize="12"
-                               FontWeight="SemiBold"
-                               Foreground="{DynamicResource TextBrush}" />
+                    <StackPanel Orientation="Horizontal">
+                        <Ellipse Width="6"
+                                 Height="6"
+                                 Fill="{DynamicResource GreenBrush}"
+                                 Margin="0,0,8,0"
+                                 VerticalAlignment="Center" />
+                        <TextBlock x:Name="ScoringChipText"
+                                   FontSize="12"
+                                   FontWeight="SemiBold"
+                                   Foreground="{DynamicResource TextBrush}" />
+                    </StackPanel>
                 </Border>
             </WrapPanel>
 
@@ -59,31 +79,71 @@
                 <Grid>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*" />
-                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="150" />
                     </Grid.ColumnDefinitions>
-                    <StackPanel VerticalAlignment="Center">
+
+                    <StackPanel VerticalAlignment="Center" Margin="0,0,10,0">
+                        <Border Background="{DynamicResource HeroOverlayBrush}"
+                                BorderBrush="{DynamicResource HeroOverlayBrush}"
+                                BorderThickness="1"
+                                CornerRadius="8"
+                                Padding="9,4"
+                                HorizontalAlignment="Left">
+                            <TextBlock Text="{DynamicResource L.Menu.QuickPlay}"
+                                       FontSize="9.5"
+                                       FontWeight="Bold"
+                                       Foreground="{DynamicResource OnAccentBrush}" />
+                        </Border>
                         <TextBlock Text="{DynamicResource L.Menu.NewGame}"
                                    FontSize="26"
                                    FontWeight="Bold"
-                                   Foreground="{DynamicResource OnAccentBrush}" />
+                                   Foreground="{DynamicResource OnAccentBrush}"
+                                   Margin="0,10,0,0" />
                         <TextBlock Text="{DynamicResource L.Menu.NewGameSubtitle}"
                                    FontSize="13"
                                    Foreground="{DynamicResource HeroSubtitleBrush}"
                                    Margin="0,7,0,0" />
                     </StackPanel>
-                    <Border Grid.Column="1"
-                            Width="60"
-                            Height="60"
-                            CornerRadius="18"
-                            Background="{DynamicResource HeroOverlayBrush}"
-                            VerticalAlignment="Center">
-                        <TextBlock Text="&#x25B6;"
+
+                    <Grid Grid.Column="1" Width="130" Height="110">
+                        <TextBlock Text="&#x2684;"
                                    FontFamily="Segoe UI Symbol"
-                                   FontSize="20"
+                                   FontSize="82"
                                    Foreground="{DynamicResource OnAccentBrush}"
-                                   HorizontalAlignment="Center"
-                                   VerticalAlignment="Center" />
-                    </Border>
+                                   Opacity="0.14"
+                                   HorizontalAlignment="Left"
+                                   VerticalAlignment="Top">
+                            <TextBlock.RenderTransform>
+                                <RotateTransform Angle="-14" />
+                            </TextBlock.RenderTransform>
+                        </TextBlock>
+                        <TextBlock Text="&#x2682;"
+                                   FontFamily="Segoe UI Symbol"
+                                   FontSize="58"
+                                   Foreground="{DynamicResource OnAccentBrush}"
+                                   Opacity="0.22"
+                                   HorizontalAlignment="Right"
+                                   VerticalAlignment="Bottom">
+                            <TextBlock.RenderTransform>
+                                <RotateTransform Angle="12" />
+                            </TextBlock.RenderTransform>
+                        </TextBlock>
+                        <Border Width="60"
+                                Height="60"
+                                CornerRadius="18"
+                                Background="{DynamicResource HeroOverlayBrush}"
+                                BorderBrush="{DynamicResource OnAccentBrush}"
+                                BorderThickness="1"
+                                HorizontalAlignment="Center"
+                                VerticalAlignment="Center">
+                            <TextBlock Text="&#x25B6;"
+                                       FontFamily="Segoe UI Symbol"
+                                       FontSize="20"
+                                       Foreground="{DynamicResource OnAccentBrush}"
+                                       HorizontalAlignment="Center"
+                                       VerticalAlignment="Center" />
+                        </Border>
+                    </Grid>
                 </Grid>
             </Button>
 
@@ -97,6 +157,7 @@
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto" />
                         <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
                     </Grid.ColumnDefinitions>
                     <Border Width="46"
                             Height="46"
@@ -123,6 +184,12 @@
                                    Foreground="{DynamicResource MutedTextBrush}"
                                    Margin="0,3,0,0" />
                     </StackPanel>
+                    <TextBlock Grid.Column="2"
+                               Text="&#x276F;"
+                               FontFamily="Segoe UI Symbol"
+                               FontSize="16"
+                               Foreground="{DynamicResource MutedTextBrush}"
+                               VerticalAlignment="Center" />
                 </Grid>
             </Button>
 
@@ -141,13 +208,16 @@
                         Style="{StaticResource ActionCardStyle}"
                         AutomationProperties.AutomationId="MenuSettings"
                         AutomationProperties.Name="{DynamicResource L.Menu.Settings}">
-                    <StackPanel>
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
                         <Border Width="38"
                                 Height="38"
                                 CornerRadius="12"
-                                Background="{DynamicResource SurfaceAltBrush}"
-                                BorderBrush="{DynamicResource BorderBrush}"
-                                BorderThickness="1">
+                                Background="{DynamicResource SettingsIconBrush}">
                             <TextBlock Text="&#x2699;"
                                        FontFamily="Segoe UI Symbol"
                                        FontSize="19"
@@ -155,16 +225,18 @@
                                        HorizontalAlignment="Center"
                                        VerticalAlignment="Center" />
                         </Border>
-                        <TextBlock Text="{DynamicResource L.Menu.Settings}"
+                        <TextBlock Grid.Row="1"
+                                   Text="{DynamicResource L.Menu.Settings}"
                                    FontSize="15"
                                    FontWeight="SemiBold"
                                    Margin="0,12,0,0" />
-                        <TextBlock Text="{DynamicResource L.Menu.SettingsSubtitle}"
+                        <TextBlock Grid.Row="2"
+                                   Text="{DynamicResource L.Menu.SettingsSubtitle}"
                                    FontSize="11.5"
                                    Foreground="{DynamicResource MutedTextBrush}"
                                    Margin="0,4,0,0"
                                    TextWrapping="Wrap" />
-                    </StackPanel>
+                    </Grid>
                 </Button>
 
                 <Button x:Name="LeaderboardButton"
@@ -174,13 +246,16 @@
                         Style="{StaticResource ActionCardStyle}"
                         AutomationProperties.AutomationId="MenuLeaderboard"
                         AutomationProperties.Name="{DynamicResource L.Menu.Leaderboard}">
-                    <StackPanel>
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
                         <Border Width="38"
                                 Height="38"
                                 CornerRadius="12"
-                                Background="{DynamicResource SurfaceAltBrush}"
-                                BorderBrush="{DynamicResource BorderBrush}"
-                                BorderThickness="1">
+                                Background="{DynamicResource LeaderboardIconBrush}">
                             <TextBlock Text="&#x2605;"
                                        FontFamily="Segoe UI Symbol"
                                        FontSize="19"
@@ -188,16 +263,18 @@
                                        HorizontalAlignment="Center"
                                        VerticalAlignment="Center" />
                         </Border>
-                        <TextBlock Text="{DynamicResource L.Menu.Leaderboard}"
+                        <TextBlock Grid.Row="1"
+                                   Text="{DynamicResource L.Menu.Leaderboard}"
                                    FontSize="15"
                                    FontWeight="SemiBold"
                                    Margin="0,12,0,0" />
-                        <TextBlock Text="{DynamicResource L.Menu.LeaderboardSubtitle}"
+                        <TextBlock Grid.Row="2"
+                                   Text="{DynamicResource L.Menu.LeaderboardSubtitle}"
                                    FontSize="11.5"
                                    Foreground="{DynamicResource MutedTextBrush}"
                                    Margin="0,4,0,0"
                                    TextWrapping="Wrap" />
-                    </StackPanel>
+                    </Grid>
                 </Button>
 
                 <Button x:Name="HelpButton"
@@ -207,13 +284,16 @@
                         Style="{StaticResource ActionCardStyle}"
                         AutomationProperties.AutomationId="MenuHelp"
                         AutomationProperties.Name="{DynamicResource L.Menu.Help}">
-                    <StackPanel>
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
                         <Border Width="38"
                                 Height="38"
                                 CornerRadius="12"
-                                Background="{DynamicResource SurfaceAltBrush}"
-                                BorderBrush="{DynamicResource BorderBrush}"
-                                BorderThickness="1">
+                                Background="{DynamicResource HelpIconBrush}">
                             <TextBlock Text="?"
                                        FontSize="18"
                                        FontWeight="Bold"
@@ -221,16 +301,18 @@
                                        HorizontalAlignment="Center"
                                        VerticalAlignment="Center" />
                         </Border>
-                        <TextBlock Text="{DynamicResource L.Menu.Help}"
+                        <TextBlock Grid.Row="1"
+                                   Text="{DynamicResource L.Menu.Help}"
                                    FontSize="15"
                                    FontWeight="SemiBold"
                                    Margin="0,12,0,0" />
-                        <TextBlock Text="{DynamicResource L.Menu.HelpSubtitle}"
+                        <TextBlock Grid.Row="2"
+                                   Text="{DynamicResource L.Menu.HelpSubtitle}"
                                    FontSize="11.5"
                                    Foreground="{DynamicResource MutedTextBrush}"
                                    Margin="0,4,0,0"
                                    TextWrapping="Wrap" />
-                    </StackPanel>
+                    </Grid>
                 </Button>
 
                 <Button x:Name="ExitButton"
@@ -239,13 +321,16 @@
                         Style="{StaticResource ActionCardStyle}"
                         AutomationProperties.AutomationId="MenuExit"
                         AutomationProperties.Name="{DynamicResource L.Menu.Exit}">
-                    <StackPanel>
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
                         <Border Width="38"
                                 Height="38"
                                 CornerRadius="12"
-                                Background="{DynamicResource SurfaceAltBrush}"
-                                BorderBrush="{DynamicResource BorderBrush}"
-                                BorderThickness="1">
+                                Background="{DynamicResource ExitIconBrush}">
                             <TextBlock Text="&#x2715;"
                                        FontFamily="Segoe UI Symbol"
                                        FontSize="18"
@@ -253,19 +338,20 @@
                                        HorizontalAlignment="Center"
                                        VerticalAlignment="Center" />
                         </Border>
-                        <TextBlock Text="{DynamicResource L.Menu.Exit}"
+                        <TextBlock Grid.Row="1"
+                                   Text="{DynamicResource L.Menu.Exit}"
                                    FontSize="15"
                                    FontWeight="SemiBold"
                                    Margin="0,12,0,0" />
-                        <TextBlock Text="{DynamicResource L.Menu.ExitSubtitle}"
+                        <TextBlock Grid.Row="2"
+                                   Text="{DynamicResource L.Menu.ExitSubtitle}"
                                    FontSize="11.5"
                                    Foreground="{DynamicResource MutedTextBrush}"
                                    Margin="0,4,0,0"
                                    TextWrapping="Wrap" />
-                    </StackPanel>
+                    </Grid>
                 </Button>
             </Grid>
         </StackPanel>
     </Grid>
 </UserControl>
-

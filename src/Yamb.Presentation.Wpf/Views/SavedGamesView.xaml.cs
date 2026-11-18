@@ -96,7 +96,7 @@ public partial class SavedGamesView : UserControl
         var textBrush = (Brush)FindResource("TextBrush");
         var mutedBrush = (Brush)FindResource("MutedTextBrush");
         var accentBrush = (Brush)FindResource("AccentBrush");
-        var surfaceBrush = (Brush)FindResource("SurfaceAltBrush");
+        var surfaceBrush = (Brush)FindResource("PanelGradientBrush");
         var dangerBrush = (Brush)FindResource("DangerBrush");
 
         int currentIndex = Math.Clamp(game.CurrentPlayerIndex, 0, Math.Max(0, game.Players.Count - 1));
@@ -219,8 +219,8 @@ public partial class SavedGamesView : UserControl
         return new Border
         {
             Background = surfaceBrush,
-            BorderBrush = (Brush)FindResource("BorderBrush"),
-            BorderThickness = new Thickness(1),
+            BorderBrush = accentBrush,
+            BorderThickness = new Thickness(2, 0, 0, 0),
             CornerRadius = new CornerRadius(14),
             Padding = new Thickness(20, 16, 20, 16),
             Margin = new Thickness(4, 4, 4, 6),

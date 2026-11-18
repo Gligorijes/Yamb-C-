@@ -240,6 +240,16 @@ try {
     Invoke-ById $mainEl 'HelpBack'
     if (-not (Wait-El { Find-ById $mainEl 'MenuNewGame' })) { throw 'menu did not return from help' }
 
+    Invoke-ById $mainEl 'MenuSettings'
+    $rose = Wait-El { Find-ById $mainEl 'ThemeRose' }
+    if (-not $rose) { throw 'rose theme option missing' }
+    Select-El $rose
+    Start-Sleep -Milliseconds 900
+    Capture $main '10-settings-rose.png'
+    Invoke-ById $mainEl 'SettingsBack'
+    if (-not (Wait-El { Find-ById $mainEl 'MenuNewGame' })) { throw 'menu did not return after rose theme' }
+    Capture $main '11-menu-rose.png'
+
     Invoke-ById $mainEl 'MenuExit'
     if (-not $p.WaitForExit(15000)) { throw 'app did not exit' }
     Write-Host "Screenshots: $shotDir"

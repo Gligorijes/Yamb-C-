@@ -31,10 +31,11 @@
     <SolidColorBrush x:Key="AnnouncedBrush" Color="#3B2226" />
     <SolidColorBrush x:Key="PopupShadeBrush" Color="#B3000000" />
     <SolidColorBrush x:Key="TransparentBrush" Color="Transparent" />
-    <SolidColorBrush x:Key="ThemeDarkPreviewBrush" Color="#1D1913" />
-    <SolidColorBrush x:Key="ThemeDarkPreviewBorderBrush" Color="#5A4B36" />
-    <SolidColorBrush x:Key="ThemeLightPreviewBrush" Color="#EAF2FC" />
-    <SolidColorBrush x:Key="ThemeLightPreviewBorderBrush" Color="#93B6D9" />
+    <SolidColorBrush x:Key="TitleBarBrush" Color="#E613110D" />
+    <SolidColorBrush x:Key="SettingsIconBrush" Color="#3B3122" />
+    <SolidColorBrush x:Key="LeaderboardIconBrush" Color="#3B3322" />
+    <SolidColorBrush x:Key="HelpIconBrush" Color="#22343A" />
+    <SolidColorBrush x:Key="ExitIconBrush" Color="#3B2226" />
 
     <SolidColorBrush x:Key="DieMagentaBrush" Color="#D977C9" />
     <SolidColorBrush x:Key="DieYellowBrush" Color="#E8C36B" />
@@ -56,14 +57,31 @@
         <GradientStop Color="#00EDD5A8" Offset="1" />
     </RadialGradientBrush>
 
-    <LinearGradientBrush x:Key="ActiveBarBrush" StartPoint="0,0" EndPoint="1,0">
-        <GradientStop Color="#F2DFBB" Offset="0" />
-        <GradientStop Color="#D3AC6D" Offset="1" />
+    <RadialGradientBrush x:Key="WindowGlowSecondaryBrush" GradientOrigin="0.5,0.5" Center="0.5,0.5" RadiusX="0.5" RadiusY="0.5">
+        <GradientStop Color="#2E84DDE9" Offset="0" />
+        <GradientStop Color="#0084DDE9" Offset="1" />
+    </RadialGradientBrush>
+
+    <LinearGradientBrush x:Key="TopAccentBrush" StartPoint="0,0" EndPoint="1,0">
+        <GradientStop Color="#F6E3BD" Offset="0" />
+        <GradientStop Color="#EDD5A8" Offset="0.45" />
+        <GradientStop Color="#84DDE9" Offset="1" />
     </LinearGradientBrush>
 
     <LinearGradientBrush x:Key="AccentButtonBrush" StartPoint="0,0" EndPoint="1,1">
         <GradientStop Color="#F2DFBB" Offset="0" />
         <GradientStop Color="#D8B77D" Offset="1" />
+    </LinearGradientBrush>
+
+    <LinearGradientBrush x:Key="HeroBackgroundBrush" StartPoint="0,0" EndPoint="1,1">
+        <GradientStop Color="#F6E3BD" Offset="0" />
+        <GradientStop Color="#D8B77D" Offset="0.62" />
+        <GradientStop Color="#B98D53" Offset="1" />
+    </LinearGradientBrush>
+
+    <LinearGradientBrush x:Key="PanelGradientBrush" StartPoint="0,0" EndPoint="1,1">
+        <GradientStop Color="#241F18" Offset="0" />
+        <GradientStop Color="#1D1913" Offset="1" />
     </LinearGradientBrush>
 
 </ResourceDictionary>
