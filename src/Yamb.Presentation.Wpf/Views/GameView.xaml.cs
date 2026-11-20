@@ -700,7 +700,9 @@ public partial class GameView : UserControl
         _sheets.Clear();
         _diceRows.Clear();
 
-        ContentGrid.Children.Add(twoPlayers ? BuildTwoPlayerLayout(game) : BuildSingleLayout(game));
+        var content = twoPlayers ? BuildTwoPlayerLayout(game) : BuildSingleLayout(game);
+        ContentGrid.Children.Add(content);
+        UiAnimations.FadeIn((FrameworkElement)content, 0.22);
 
         for (int i = 0; i < game.Players.Count; i++)
         {
@@ -1265,6 +1267,7 @@ public partial class GameView : UserControl
         }
 
         TurnText.Text = Localization.Format("L.Game.Turn", game.Players[game.CurrentPlayerIndex].Name);
+        ThinkingPill.Visibility = IsBotTurn(game) ? Visibility.Visible : Visibility.Collapsed;
 
         var current = game.Players[game.CurrentPlayerIndex].Scoresheet;
         if (_statusProgress is not null)

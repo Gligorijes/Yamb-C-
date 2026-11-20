@@ -129,7 +129,7 @@
                             Background="{TemplateBinding Background}"
                             BorderBrush="{TemplateBinding BorderBrush}"
                             BorderThickness="{TemplateBinding BorderThickness}"
-                            CornerRadius="12"
+                            CornerRadius="14"
                             SnapsToDevicePixels="True">
                         <ContentPresenter HorizontalAlignment="Center"
                                           VerticalAlignment="Center"
@@ -350,7 +350,7 @@
                 <ControlTemplate TargetType="Button">
                     <Border x:Name="Chip"
                             Margin="0"
-                            CornerRadius="2"
+                            CornerRadius="6"
                             Background="{TemplateBinding Background}"
                             BorderBrush="{TemplateBinding BorderBrush}"
                             BorderThickness="{TemplateBinding BorderThickness}"
@@ -370,6 +370,11 @@
                 <Setter Property="Background" Value="{DynamicResource AnnouncedBrush}" />
                 <Setter Property="Foreground" Value="{DynamicResource DangerBrush}" />
                 <Setter Property="BorderBrush" Value="{DynamicResource DangerBrush}" />
+                <Setter Property="BorderThickness" Value="2" />
+            </Trigger>
+            <Trigger Property="IsFocused" Value="True">
+                <Setter Property="Background" Value="{DynamicResource AccentSoftBrush}" />
+                <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
                 <Setter Property="BorderThickness" Value="2" />
             </Trigger>
             <MultiTrigger>

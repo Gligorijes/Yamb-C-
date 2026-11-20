@@ -1,5 +1,11 @@
 # Istorija verzija / Build history
 
+## [1.0.0-alpha.8] - 2026-11-20
+- Bot sada znatno brže bira kocke za zadržavanje i najavu: pretraga je ograničena na najperspektivnije kombinacije, uz uzorkovanje ishoda bacanja i snažnije keširanje.
+- Zadržana je strategija iz alpha.7: rekurzivno planiranje do poslednjeg bacanja, stvarne bonuse i dozvoljene najave.
+- Dodata animirana indikacija „Bot razmišlja...“ u zaglavlju partije, vidljiva tokom svih bot poteza.
+- Osveženi vizuelni detalji igre: zaobljenije dugmad i ćelije tabele, fokus okvir ćelija i suptilna animacija ulaska tabele.
+
 ## [1.0.0-alpha.7] - 2026-11-20
 - Bot sada koristi rekurzivno planiranje do poslednjeg bacanja i bira držanje kockica prema očekivanom rezultatu cele runde.
 - Bot pri oceni poteza računa stvarne bonuse, uključujući bonus za brojeve i kombinaciju Maks–Min.

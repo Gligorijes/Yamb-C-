@@ -10,6 +10,7 @@ namespace Yamb.Application.Services;
 public sealed class BotAdvisor : IBotAdvisor
 {
     private static readonly ConcurrentDictionary<int, IReadOnlyList<RollOutcome>> OutcomeCache = new();
+    private static readonly ConcurrentDictionary<(int Count, int Limit), IReadOnlyList<RollOutcome>> SampledOutcomeCache = new();
     private static readonly ConcurrentDictionary<string, IReadOnlyList<int>> ScoreCache = new(StringComparer.Ordinal);
     private readonly GameRuleset _rules;
 
@@ -52,12 +53,16 @@ public sealed class BotAdvisor : IBotAdvisor
         var baseline = CreatePlan(game, moves, rules, null)
             .ExpectedValue(counts, game.RollNumber, game.AllDiceThrownThisRoll);
 
+        var shortlist = candidates
+            .Where(candidate => !IsFilled(game, candidate.Column, candidate.Row))
+            .OrderByDescending(candidate => candidate.PreviewScore)
+            .Take(5)
+            .ToList();
+
         AvailableMoveDto? best = null;
         double bestValue = double.NegativeInfinity;
-        foreach (var candidate in candidates)
+        foreach (var candidate in shortlist)
         {
-            if (IsFilled(game, candidate.Column, candidate.Row)) continue;
-
             double value = CreatePlan(game, new[] { candidate }, rules, candidate.Row)
                 .ExpectedValue(counts, game.RollNumber, game.AllDiceThrownThisRoll);
             if (value > bestValue)
@@ -273,6 +278,28 @@ public sealed class BotAdvisor : IBotAdvisor
         return Enumerate(0);
     }
 
+    private static double HoldPriority(int[] kept)
+    {
+        int maxCount = kept.Max();
+        int maxFace = Array.IndexOf(kept, maxCount) + 1;
+        int distinct = kept.Count(value => value > 0);
+        double priority = 0;
+
+        for (int face = 1; face <= kept.Length; face++)
+            priority += kept[face - 1] * face;
+
+        if (maxCount >= 5) priority += 60 + maxFace;
+        else if (maxCount >= 4) priority += 28 + maxFace * 2;
+        else if (maxCount >= 3) priority += 12 + maxFace;
+
+        if (distinct >= 5) priority += 22;
+        else if (distinct >= 4) priority += 8;
+
+        return priority;
+    }
+
+    private static string CountKey(int[] counts) => string.Join('.', counts);
+
     private static int[] Add(int[] left, int[] right) =>
         Enumerable.Range(0, left.Length).Select(i => left[i] + right[i]).ToArray();
 
@@ -314,6 +341,31 @@ public sealed class BotAdvisor : IBotAdvisor
             return outcomes;
         });
 
+    private static IReadOnlyList<RollOutcome> Outcomes(int diceCount, int limit)
+    {
+        var all = Outcomes(diceCount);
+        if (all.Count <= limit) return all;
+
+        return SampledOutcomeCache.GetOrAdd((diceCount, limit), _ =>
+        {
+            var ordered = all
+                .OrderByDescending(outcome => outcome.Probability)
+                .ThenByDescending(outcome => outcome.Counts.Max())
+                .ToList();
+            var selected = new List<RollOutcome>(limit);
+            for (int i = 0; i < limit; i++)
+            {
+                int index = (int)((i + 0.5) * ordered.Count / limit);
+                selected.Add(ordered[index]);
+            }
+
+            double totalWeight = selected.Sum(outcome => outcome.Probability);
+            return selected
+                .Select(outcome => outcome with { Probability = outcome.Probability / totalWeight })
+                .ToList();
+        });
+    }
+
     private static int Factorial(int value)
     {
         int result = 1;
@@ -329,6 +381,11 @@ public sealed class BotAdvisor : IBotAdvisor
 
     private sealed class Plan
     {
+        private const int RootHoldLimit = 20;
+        private const int NestedHoldLimit = 8;
+        private const int RootOutcomeLimit = 96;
+        private const int NestedOutcomeLimit = 40;
+
         private readonly BotAdvisor _owner;
         private readonly GameDto _game;
         private readonly GameRuleset _rules;
@@ -336,6 +393,7 @@ public sealed class BotAdvisor : IBotAdvisor
         private readonly IReadOnlyList<AvailableMoveDto> _candidates;
         private readonly Dictionary<(AvailableMoveDto Move, int Score), int> _bonusDeltas = new();
         private readonly Row? _announcedRow;
+        private readonly int _startRoll;
         private readonly Dictionary<string, double> _cache = new(StringComparer.Ordinal);
 
         public Plan(
@@ -356,6 +414,7 @@ public sealed class BotAdvisor : IBotAdvisor
                     (move.Column == Column.Announcement && move.Row == announcedRow.Value))
                 .ToList();
             _announcedRow = announcedRow;
+            _startRoll = game.RollNumber;
         }
 
         public double ExpectedValue(int[] counts, int rollNumber, bool allThrown) =>
@@ -373,11 +432,11 @@ public sealed class BotAdvisor : IBotAdvisor
 
             double best = double.NegativeInfinity;
             int[] bestKept = (int[])counts.Clone();
-            foreach (var kept in SubCounts(counts))
+            foreach (var kept in HoldChoices(counts, rollNumber))
             {
                 int nextRoll = rollNumber + 1;
                 bool nextAllThrown = Sum(kept) == 0;
-                double value = ExpectedRolls(kept, counts, nextRoll, nextAllThrown);
+                double value = ExpectedRolls(kept, counts, nextRoll, nextAllThrown, OutcomeLimitFor(rollNumber));
                 if (value > best + 0.0001 ||
                     (Math.Abs(value - best) <= 0.0001 && Sum(kept) > Sum(bestKept)))
                 {
@@ -387,6 +446,28 @@ public sealed class BotAdvisor : IBotAdvisor
             }
 
             return new HoldDecision(best, bestKept);
+        }
+
+        private bool IsRoot(int rollNumber) => rollNumber == _startRoll;
+
+        private int HoldLimitFor(int rollNumber) => IsRoot(rollNumber) ? RootHoldLimit : NestedHoldLimit;
+
+        private int OutcomeLimitFor(int rollNumber) => IsRoot(rollNumber) ? RootOutcomeLimit : NestedOutcomeLimit;
+
+        private IReadOnlyList<int[]> HoldChoices(int[] counts, int rollNumber)
+        {
+            int total = Sum(counts);
+            var choices = SubCounts(counts)
+                .Select(kept => (int[])kept.Clone())
+                .OrderByDescending(HoldPriority)
+                .ThenByDescending(Sum)
+                .ThenBy(CountKey, StringComparer.Ordinal)
+                .Take(HoldLimitFor(rollNumber))
+                .ToList();
+
+            if (!choices.Any(kept => Sum(kept) == total)) choices.Add((int[])counts.Clone());
+            if (!choices.Any(kept => Sum(kept) == 0)) choices.Insert(0, new int[counts.Length]);
+            return choices;
         }
 
         private double Evaluate(int[] counts, int rollNumber, bool allThrown)
@@ -402,10 +483,15 @@ public sealed class BotAdvisor : IBotAdvisor
             }
 
             double best = double.NegativeInfinity;
-            foreach (var kept in SubCounts(counts))
+            foreach (var kept in HoldChoices(counts, rollNumber))
             {
                 bool nextAllThrown = Sum(kept) == 0;
-                double value = ExpectedRolls(kept, counts, rollNumber + 1, nextAllThrown);
+                double value = ExpectedRolls(
+                    kept,
+                    counts,
+                    rollNumber + 1,
+                    nextAllThrown,
+                    OutcomeLimitFor(rollNumber));
                 if (value > best) best = value;
             }
 
@@ -413,12 +499,17 @@ public sealed class BotAdvisor : IBotAdvisor
             return best;
         }
 
-        private double ExpectedRolls(int[] kept, int[] counts, int nextRoll, bool nextAllThrown)
+        private double ExpectedRolls(
+            int[] kept,
+            int[] counts,
+            int nextRoll,
+            bool nextAllThrown,
+            int outcomeLimit)
         {
             var rerolled = Subtract(counts, kept);
             int diceToRoll = Sum(rerolled);
             double expected = 0;
-            foreach (var outcome in Outcomes(diceToRoll))
+            foreach (var outcome in Outcomes(diceToRoll, outcomeLimit))
             {
                 var next = Add(kept, outcome.Counts);
                 expected += outcome.Probability * Evaluate(next, nextRoll, nextAllThrown);

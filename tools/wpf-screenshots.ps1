@@ -22,6 +22,8 @@ public static class Native {
     [DllImport("user32.dll", CharSet=CharSet.Unicode)] public static extern int GetWindowText(IntPtr hWnd, StringBuilder sb, int max);
     [DllImport("user32.dll")] public static extern bool GetWindowRect(IntPtr hWnd, out RECT rect);
     [DllImport("user32.dll")] public static extern bool SetForegroundWindow(IntPtr hWnd);
+    [DllImport("user32.dll")] public static extern IntPtr GetForegroundWindow();
+    [DllImport("user32.dll")] public static extern bool SetWindowPos(IntPtr hWnd, IntPtr hWndInsertAfter, int X, int Y, int cx, int cy, uint uFlags);
     [DllImport("user32.dll")] public static extern bool ShowWindow(IntPtr hWnd, int cmd);
     [DllImport("user32.dll")] public static extern bool SetProcessDPIAware();
 
@@ -135,9 +137,17 @@ function Save-Shot([long]$hwnd, [string]$path) {
 }
 function Capture($main, [string]$name) {
     $path = Join-Path $shotDir $name
-    [void][Native]::SetForegroundWindow([IntPtr]$main.Hwnd)
-    Start-Sleep -Milliseconds 450
+    $hwnd = [IntPtr]$main.Hwnd
+    for ($attempt = 0; $attempt -lt 5; $attempt++) {
+        [void][Native]::ShowWindow($hwnd, 9)
+        [void][Native]::SetWindowPos($hwnd, [IntPtr](-1), 0, 0, 0, 0, 0x0043)
+        [void][Native]::SetForegroundWindow($hwnd)
+        Start-Sleep -Milliseconds 300
+        if ([Native]::GetForegroundWindow() -eq $hwnd) { break }
+    }
+    Start-Sleep -Milliseconds 350
     Save-Shot $main.Hwnd $path
+    [void][Native]::SetWindowPos($hwnd, [IntPtr](-2), 0, 0, 0, 0, 0x0043)
     Write-Host "Saved $name"
 }
 function Set-UpGame($mainEl, [string]$name) {

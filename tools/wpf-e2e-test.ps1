@@ -551,6 +551,7 @@ try {
         Invoke-ById $mainEl 'RollButton'
         Start-Sleep -Milliseconds 900
         Invoke-ById $mainEl 'Cell_0_Downward_Ones'
+        Check 'bot thinking indicator appears' ($null -ne (Wait-El { Find-ById $mainEl 'BotThinkingText' } 3))
 
         $botWrote = $false
         for ($i = 0; $i -lt 48; $i++) {
@@ -571,6 +572,7 @@ try {
             Start-Sleep -Milliseconds 250
         }
         Check 'bot returns turn to human' $humanReady
+        Check 'bot thinking indicator clears' ($null -eq (Find-ById $mainEl 'BotThinkingText'))
 
         Invoke-ById $mainEl 'MenuButton'
         Invoke-Btn $mainEl 'Da'
@@ -584,7 +586,7 @@ try {
     Invoke-ById $mainEl 'HelpPrev'
     Check 'help page goes back' (Wait-Text $mainEl 'HelpPage' '1/5')
     $versionEl = Wait-El { Find-ById $mainEl 'HelpVersion' }
-    Check 'help shows build version' ($versionEl -and $versionEl.Current.Name -match '1\.0\.0-alpha\.7' -and $versionEl.Current.Name -match 'build 7')
+    Check 'help shows build version' ($versionEl -and $versionEl.Current.Name -match '1\.0\.0-alpha\.8' -and $versionEl.Current.Name -match 'build 8')
     for ($i = 0; $i -lt 4; $i++) {
         Invoke-ById $mainEl 'HelpNext'
         Start-Sleep -Milliseconds 250

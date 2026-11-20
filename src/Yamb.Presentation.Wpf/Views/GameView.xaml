@@ -39,6 +39,76 @@
             <StackPanel Orientation="Horizontal"
                         HorizontalAlignment="Right"
                         VerticalAlignment="Center">
+                <Grid x:Name="ThinkingPill"
+                      Visibility="Collapsed"
+                      Margin="0,0,16,0"
+                      AutomationProperties.AutomationId="BotThinkingIndicator">
+                    <Border Background="{DynamicResource AccentSoftBrush}"
+                            BorderBrush="{DynamicResource AccentBrush}"
+                            BorderThickness="1"
+                            CornerRadius="999"
+                            Padding="10,5">
+                        <Border.Effect>
+                            <DropShadowEffect Color="#000000" BlurRadius="10" ShadowDepth="2" Opacity="0.18" />
+                        </Border.Effect>
+                        <StackPanel Orientation="Horizontal">
+                            <Ellipse Width="5" Height="5" Margin="0,0,4,0" Fill="{DynamicResource AccentBrush}">
+                                <Ellipse.Triggers>
+                                    <EventTrigger RoutedEvent="FrameworkElement.Loaded">
+                                        <BeginStoryboard>
+                                            <Storyboard RepeatBehavior="Forever">
+                                                <DoubleAnimationUsingKeyFrames Storyboard.TargetProperty="Opacity"
+                                                                               Duration="0:0:1.2">
+                                                    <DiscreteDoubleKeyFrame KeyTime="0:0:0" Value="0.25" />
+                                                    <EasingDoubleKeyFrame KeyTime="0:0:0.3" Value="1" />
+                                                    <EasingDoubleKeyFrame KeyTime="0:0:0.9" Value="0.25" />
+                                                </DoubleAnimationUsingKeyFrames>
+                                            </Storyboard>
+                                        </BeginStoryboard>
+                                    </EventTrigger>
+                                </Ellipse.Triggers>
+                            </Ellipse>
+                            <Ellipse Width="5" Height="5" Margin="0,0,4,0" Fill="{DynamicResource AccentBrush}">
+                                <Ellipse.Triggers>
+                                    <EventTrigger RoutedEvent="FrameworkElement.Loaded">
+                                        <BeginStoryboard>
+                                            <Storyboard RepeatBehavior="Forever" BeginTime="0:0:0.15">
+                                                <DoubleAnimationUsingKeyFrames Storyboard.TargetProperty="Opacity"
+                                                                               Duration="0:0:1.2">
+                                                    <DiscreteDoubleKeyFrame KeyTime="0:0:0" Value="0.25" />
+                                                    <EasingDoubleKeyFrame KeyTime="0:0:0.3" Value="1" />
+                                                    <EasingDoubleKeyFrame KeyTime="0:0:0.9" Value="0.25" />
+                                                </DoubleAnimationUsingKeyFrames>
+                                            </Storyboard>
+                                        </BeginStoryboard>
+                                    </EventTrigger>
+                                </Ellipse.Triggers>
+                            </Ellipse>
+                            <Ellipse Width="5" Height="5" Margin="0,0,8,0" Fill="{DynamicResource AccentBrush}">
+                                <Ellipse.Triggers>
+                                    <EventTrigger RoutedEvent="FrameworkElement.Loaded">
+                                        <BeginStoryboard>
+                                            <Storyboard RepeatBehavior="Forever" BeginTime="0:0:0.3">
+                                                <DoubleAnimationUsingKeyFrames Storyboard.TargetProperty="Opacity"
+                                                                               Duration="0:0:1.2">
+                                                    <DiscreteDoubleKeyFrame KeyTime="0:0:0" Value="0.25" />
+                                                    <EasingDoubleKeyFrame KeyTime="0:0:0.3" Value="1" />
+                                                    <EasingDoubleKeyFrame KeyTime="0:0:0.9" Value="0.25" />
+                                                </DoubleAnimationUsingKeyFrames>
+                                            </Storyboard>
+                                        </BeginStoryboard>
+                                    </EventTrigger>
+                                </Ellipse.Triggers>
+                            </Ellipse>
+                            <TextBlock Text="{DynamicResource L.Game.BotThinking}"
+                                       FontSize="11.5"
+                                       FontWeight="SemiBold"
+                                       Foreground="{DynamicResource AccentBrush}"
+                                       VerticalAlignment="Center"
+                                       AutomationProperties.AutomationId="BotThinkingText" />
+                        </StackPanel>
+                    </Border>
+                </Grid>
                 <TextBlock Text="{DynamicResource L.Game.Shortcuts}"
                            FontSize="10.5"
                            Foreground="{DynamicResource MutedTextBrush}"
