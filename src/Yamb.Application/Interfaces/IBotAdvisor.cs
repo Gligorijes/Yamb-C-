@@ -9,5 +9,8 @@ public interface IBotAdvisor
 
     IReadOnlyList<int> ChooseDiceToHold(GameDto game, IReadOnlyList<AvailableMoveDto> moves);
 
-    Row? ChooseAnnouncement(GameDto game, IReadOnlyList<AvailableMoveDto> moves);
+    Row? ChooseAnnouncement(
+        GameDto game,
+        IReadOnlyList<AvailableMoveDto> moves,
+        IReadOnlyList<AvailableMoveDto> candidates);
 }

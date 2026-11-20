@@ -523,7 +523,10 @@ public partial class GameView : UserControl
                 if (game.RollNumber < MaxRollsPerTurn)
                 {
                     var moves = await _gameService.GetAvailableMovesAsync(_gameId, 1);
-                    foreach (int dieIndex in _botAdvisor.ChooseDiceToHold(game, moves))
+                    var diceToToggle = await Task.Run(
+                        () => _botAdvisor.ChooseDiceToHold(game, moves),
+                        _botCts.Token);
+                    foreach (int dieIndex in diceToToggle)
                         await _gameService.ToggleHoldAsync(_gameId, 1, dieIndex);
 
                     await _gameService.RollDiceAsync(_gameId, 1);
@@ -534,7 +537,9 @@ public partial class GameView : UserControl
                 }
 
                 var finalMoves = await _gameService.GetAvailableMovesAsync(_gameId, 1);
-                var best = _botAdvisor.ChooseMove(game, finalMoves);
+                var best = await Task.Run(
+                    () => _botAdvisor.ChooseMove(game, finalMoves),
+                    _botCts.Token);
                 if (best is null) break;
 
                 await _gameService.WriteScoreAsync(_gameId, 1, best.Column, best.Row);
@@ -545,8 +550,9 @@ public partial class GameView : UserControl
         catch (OperationCanceledException) when (_botCts.IsCancellationRequested)
         {
         }
-        catch (Exception ex) when (ex is DomainException or GameException)
+        catch (Exception ex) when (ex is not OperationCanceledException)
         {
+            if (_botCts.IsCancellationRequested) return;
             MessageBox.Show(ErrorText.From(ex), Localization.Text("L.App.ErrorTitle"), MessageBoxButton.OK, MessageBoxImage.Warning);
         }
         finally
@@ -558,10 +564,13 @@ public partial class GameView : UserControl
     private async Task TryBotAnnounceAsync()
     {
         var game = await _gameService.GetGameAsync(_gameId);
-        if (game.AnnouncedRow.HasValue) return;
+        if (game.AnnouncedRow.HasValue || game.RollNumber == 0) return;
 
         var moves = await _gameService.GetAvailableMovesAsync(_gameId, 1);
-        var row = _botAdvisor.ChooseAnnouncement(game, moves);
+        var candidates = await _gameService.GetAnnouncementCandidatesAsync(_gameId, 1);
+        var row = await Task.Run(
+            () => _botAdvisor.ChooseAnnouncement(game, moves, candidates),
+            _botCts.Token);
         if (!row.HasValue) return;
 
         await _gameService.AnnounceAsync(_gameId, 1, row.Value);

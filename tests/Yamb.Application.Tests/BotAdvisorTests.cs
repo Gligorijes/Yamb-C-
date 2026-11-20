@@ -2,17 +2,19 @@ using FluentAssertions;
 using Yamb.Application.DTOs;
 using Yamb.Application.Services;
 using Yamb.Domain.Enums;
+using Yamb.Domain.Rules;
 
 namespace Yamb.Application.Tests;
 
 public class BotAdvisorTests
 {
-    private readonly BotAdvisor _advisor = new();
+    private readonly BotAdvisor _advisor = new(GameRuleset.Default);
 
     [Fact]
     public void ChooseMove_AvoidsZeroWhenPositiveMoveExists()
     {
-        var game = CreateGame(3, (1, false), (2, false), (3, false), (4, false), (5, false), (6, false));
+        var columns = Enum.GetValues<Column>().Where(column => column != Column.Maximum).ToList();
+        var game = CreateGame(3, columns, null, (1, false), (2, false), (3, false), (4, false), (5, false), (6, false));
         var moves = new[]
         {
             new AvailableMoveDto(Column.Free, Row.Yamb, 0),
@@ -27,7 +29,7 @@ public class BotAdvisorTests
     [Fact]
     public void ChooseMove_PrefersMaximumColumnQualifier()
     {
-        var game = CreateGame(3, (6, false), (6, false), (6, false), (6, false), (6, false), (1, false));
+        var game = CreateGame(3, null, null, (6, false), (6, false), (6, false), (6, false), (6, false), (1, false));
         var moves = new[]
         {
             new AvailableMoveDto(Column.Free, Row.Sixes, 30),
@@ -36,13 +38,44 @@ public class BotAdvisorTests
 
         var move = _advisor.ChooseMove(game, moves);
 
-        move.Should().BeEquivalentTo(new AvailableMoveDto(Column.Maximum, Row.Max, 30));
+        move.Should().NotBeNull();
+        move!.Column.Should().Be(Column.Maximum);
+    }
+
+    [Fact]
+    public void ChooseMove_PrefersBonusCompletingMove()
+    {
+        var filled = new Dictionary<(Column, Row), int>
+        {
+            [(Column.Free, Row.Ones)] = 5,
+            [(Column.Free, Row.Twos)] = 10,
+            [(Column.Free, Row.Threes)] = 15,
+            [(Column.Free, Row.Fours)] = 20,
+            [(Column.Free, Row.Fives)] = 25,
+            [(Column.Maximum, Row.FourOfAKind)] = 64,
+            [(Column.Maximum, Row.Yamb)] = 80
+        };
+        var game = CreateGame(
+            3,
+            null,
+            null,
+            filled,
+            (6, false), (6, false), (6, false), (6, false), (6, false), (6, false));
+        var moves = new[]
+        {
+            new AvailableMoveDto(Column.Free, Row.Sixes, 30),
+            new AvailableMoveDto(Column.Maximum, Row.Max, 30)
+        };
+
+        var move = _advisor.ChooseMove(game, moves);
+
+        move.Should().BeEquivalentTo(new AvailableMoveDto(Column.Free, Row.Sixes, 30));
     }
 
     [Fact]
     public void ChooseDiceToHold_HoldsSixesForMaximumScore()
     {
-        var game = CreateGame(2, (6, false), (6, false), (6, false), (6, false), (1, false), (2, false));
+        var game = CreateGame(2, null, null, (6, false), (6, false), (6, false), (6, false), (1, false), (2, false));
         var moves = new[]
         {
             new AvailableMoveDto(Column.Free, Row.Sixes, 24),
@@ -56,27 +89,74 @@ public class BotAdvisorTests
     }
 
     [Fact]
+    public void ChooseDiceToHold_IgnoresMaximumWhenRowIsAnnounced()
+    {
+        var game = CreateGame(
+            1,
+            null,
+            Row.Yamb,
+            (6, false), (6, false), (6, false), (6, false), (6, false), (1, false));
+        var moves = new[] { new AvailableMoveDto(Column.Announcement, Row.Yamb, 80) };
+
+        var held = _advisor.ChooseDiceToHold(game, moves);
+
+        held.Should().NotBeEmpty();
+        held.Count(index => game.Dice.Dice[index].Value == 6).Should().BeGreaterThanOrEqualTo(4);
+    }
+
+    [Fact]
     public void ChooseAnnouncement_SelectsStrongCombination()
     {
-        var game = CreateGame(1, (1, false), (1, false), (1, false), (1, false), (1, false), (6, false));
+        var game = CreateGame(1, null, null, (1, false), (1, false), (1, false), (1, false), (1, false), (6, false));
         var moves = new[]
         {
+            new AvailableMoveDto(Column.Free, Row.Ones, 5),
+            new AvailableMoveDto(Column.Free, Row.Yamb, 55)
+        };
+        var candidates = new[]
+        {
             new AvailableMoveDto(Column.Announcement, Row.Ones, 5),
-            new AvailableMoveDto(Column.Announcement, Row.Yamb, 80)
+            new AvailableMoveDto(Column.Announcement, Row.Yamb, 55)
         };
 
-        var row = _advisor.ChooseAnnouncement(game, moves);
+        var row = _advisor.ChooseAnnouncement(game, moves, candidates);
 
         row.Should().Be(Row.Yamb);
     }
 
-    private static GameDto CreateGame(int rollNumber, params (int Value, bool Held)[] dice)
+    [Fact]
+    public void ChooseAnnouncement_ReturnsNullWithoutCandidates()
     {
-        var columns = Enum.GetValues<Column>().ToList();
+        var game = CreateGame(1, null, null, (1, false), (2, false), (3, false), (4, false), (5, false), (6, false));
+
+        var row = _advisor.ChooseAnnouncement(game, Array.Empty<AvailableMoveDto>(), Array.Empty<AvailableMoveDto>());
+
+        row.Should().BeNull();
+    }
+
+    private static GameDto CreateGame(
+        int rollNumber,
+        IReadOnlyList<Column>? columns,
+        Row? announcedRow,
+        params (int Value, bool Held)[] dice) =>
+        CreateGame(rollNumber, columns, announcedRow, null, dice);
+
+    private static GameDto CreateGame(
+        int rollNumber,
+        IReadOnlyList<Column>? columns,
+        Row? announcedRow,
+        IReadOnlyDictionary<(Column, Row), int>? filled,
+        params (int Value, bool Held)[] dice)
+    {
+        columns ??= Enum.GetValues<Column>().ToList();
         var cells = columns.ToDictionary(
             column => column,
-            _ => (IReadOnlyDictionary<Row, int?>)Enum.GetValues<Row>()
-                .ToDictionary(row => row, _ => (int?)null));
+            currentColumn => (IReadOnlyDictionary<Row, int?>)Enum.GetValues<Row>()
+                .ToDictionary(
+                    row => row,
+                    row => filled is not null && filled.TryGetValue((currentColumn, row), out int score)
+                        ? (int?)score
+                        : null));
         var bonuses = columns.ToDictionary(column => column, _ => new BonusesDto(null, null, null));
         var sheet = new ScoresheetDto(
             cells,
@@ -84,22 +164,22 @@ public class BotAdvisorTests
             Enum.GetValues<Row>().ToDictionary(row => row, _ => (int?)null),
             new BonusesDto(null, null, null),
             columns.ToDictionary(column => column, _ => 0),
-            0,
-            0,
+            filled?.Values.Sum() ?? 0,
+            filled?.Count ?? 0,
             columns.Count * Enum.GetValues<Row>().Length,
             null);
         var player = new PlayerDto("Bot", sheet);
 
         return new GameDto(
             Guid.NewGuid(),
-            GameMode.VersusComputer,
+            GameMode.SinglePlayer,
             columns,
             new[] { player },
             0,
             new DiceSetDto(dice.Select(die => new DieDto(die.Value, die.Held)).ToList()),
             rollNumber,
-            null,
-            true,
+            announcedRow,
+            !dice.Any(die => die.Held),
             false,
             GameResult.InProgress);
     }

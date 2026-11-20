@@ -169,6 +169,24 @@ public sealed class GameService : IGameService
         return moves;
     }
 
+    public async Task<IReadOnlyList<AvailableMoveDto>> GetAnnouncementCandidatesAsync(
+        Guid gameId,
+        int playerIndex)
+    {
+        var game = await LoadGameAsync(gameId);
+        EnsureActingPlayer(game, playerIndex);
+
+        if (game.RollNumber == 0 || game.AnnouncedRow.HasValue ||
+            !game.Columns.Contains(Column.Announcement))
+            return Array.Empty<AvailableMoveDto>();
+
+        var cells = game.CurrentPlayer.Scoresheet.GetColumnCells(Column.Announcement);
+        return Enum.GetValues<Row>()
+            .Where(row => !cells.TryGetValue(row, out var value) || !value.HasValue)
+            .Select(row => new AvailableMoveDto(Column.Announcement, row, game.PreviewScore(row)))
+            .ToList();
+    }
+
     public async Task<int> PreviewScoreAsync(Guid gameId, int playerIndex, Row row)
     {
         var game = await LoadGameAsync(gameId);

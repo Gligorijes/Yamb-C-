@@ -584,7 +584,7 @@ try {
     Invoke-ById $mainEl 'HelpPrev'
     Check 'help page goes back' (Wait-Text $mainEl 'HelpPage' '1/5')
     $versionEl = Wait-El { Find-ById $mainEl 'HelpVersion' }
-    Check 'help shows build version' ($versionEl -and $versionEl.Current.Name -match '1\.0\.0-alpha\.6' -and $versionEl.Current.Name -match 'build 6')
+    Check 'help shows build version' ($versionEl -and $versionEl.Current.Name -match '1\.0\.0-alpha\.7' -and $versionEl.Current.Name -match 'build 7')
     for ($i = 0; $i -lt 4; $i++) {
         Invoke-ById $mainEl 'HelpNext'
         Start-Sleep -Milliseconds 250

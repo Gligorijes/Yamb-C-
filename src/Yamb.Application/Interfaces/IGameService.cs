@@ -23,5 +23,7 @@ public interface IGameService
 
     Task<IReadOnlyList<AvailableMoveDto>> GetAvailableMovesAsync(Guid gameId, int playerIndex);
 
+    Task<IReadOnlyList<AvailableMoveDto>> GetAnnouncementCandidatesAsync(Guid gameId, int playerIndex);
+
     Task<int> PreviewScoreAsync(Guid gameId, int playerIndex, Row row);
 }

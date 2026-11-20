@@ -1,5 +1,11 @@
 # Istorija verzija / Build history
 
+## [1.0.0-alpha.7] - 2026-11-20
+- Bot sada koristi rekurzivno planiranje do poslednjeg bacanja i bira držanje kockica prema očekivanom rezultatu cele runde.
+- Bot pri oceni poteza računa stvarne bonuse, uključujući bonus za brojeve i kombinaciju Maks–Min.
+- Ispravljeno: bot sada može da najavi red iz kolone Najava i ne razmatra nedozvoljene ćelije Maksimuma posle najave.
+- Bot odluke se računaju u pozadini, sa keširanjem rezultata i otpornošću na neočekivane greške.
+
 ## [1.0.0-alpha.6] - 2026-11-18
 - Unapređen bot: sada procenjuje sve kombinacije zadržavanja kockica i bira potez prema očekivanom rezultatu posle bacanja.
 - Bot pažljivije bira najavu i prioritizuje redove koji isplaćuju u koloni Maksimum.

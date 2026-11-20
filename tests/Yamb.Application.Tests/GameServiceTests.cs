@@ -340,6 +340,41 @@ public class GameServiceTests
     }
 
     [Fact]
+    public async Task GetAnnouncementCandidates_BeforeFirstRoll_ReturnsEmpty()
+    {
+        var game = await _service.StartGameAsync(SinglePlayerCommand());
+
+        var candidates = await _service.GetAnnouncementCandidatesAsync(game.Id, 0);
+
+        candidates.Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task GetAnnouncementCandidates_AfterFirstRoll_ReturnsEmptyAnnouncementCells()
+    {
+        var game = await _service.StartGameAsync(SinglePlayerCommand());
+        await _service.RollDiceAsync(game.Id, 0);
+
+        var candidates = await _service.GetAnnouncementCandidatesAsync(game.Id, 0);
+
+        candidates.Should().HaveCount(Enum.GetValues<Row>().Length);
+        candidates.Should().OnlyContain(move => move.Column == Column.Announcement);
+        candidates.Should().Contain(move => move.Row == Row.Yamb);
+    }
+
+    [Fact]
+    public async Task GetAnnouncementCandidates_AfterAnnouncement_ReturnsEmpty()
+    {
+        var game = await _service.StartGameAsync(SinglePlayerCommand());
+        await _service.RollDiceAsync(game.Id, 0);
+        await _service.AnnounceAsync(game.Id, 0, Row.Yamb);
+
+        var candidates = await _service.GetAnnouncementCandidatesAsync(game.Id, 0);
+
+        candidates.Should().BeEmpty();
+    }
+
+    [Fact]
     public async Task DeleteGame_RemovesFromRepository()
     {
         var game = await _service.StartGameAsync(SinglePlayerCommand());
