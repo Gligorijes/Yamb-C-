@@ -6,14 +6,16 @@ namespace Yamb.Presentation.Wpf;
 
 public static class UiAnimations
 {
+    private const int DesiredFrameRate = 165;
+
     public static void FadeIn(FrameworkElement element, double seconds = 0.2)
     {
         element.Opacity = 1;
-        var animation = new DoubleAnimation(0, 1, TimeSpan.FromSeconds(seconds))
+        var animation = AtDisplayRate(new DoubleAnimation(0, 1, TimeSpan.FromSeconds(seconds))
         {
             EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut },
             FillBehavior = FillBehavior.Stop
-        };
+        });
         element.BeginAnimation(UIElement.OpacityProperty, animation);
     }
 
@@ -25,7 +27,7 @@ public static class UiAnimations
         element.Opacity = 1;
 
         var ease = new CubicEase { EasingMode = EasingMode.EaseOut };
-        var bounce = new DoubleAnimationUsingKeyFrames { FillBehavior = FillBehavior.Stop };
+        var bounce = AtDisplayRate(new DoubleAnimationUsingKeyFrames { FillBehavior = FillBehavior.Stop });
         bounce.KeyFrames.Add(new EasingDoubleKeyFrame(0.94, KeyTime.FromTimeSpan(TimeSpan.Zero)));
         bounce.KeyFrames.Add(new EasingDoubleKeyFrame(1.015, KeyTime.FromTimeSpan(TimeSpan.FromSeconds(seconds * 0.7)))
         {
@@ -36,11 +38,11 @@ public static class UiAnimations
             EasingFunction = ease
         });
 
-        var fade = new DoubleAnimation(0, 1, TimeSpan.FromSeconds(seconds * 0.75))
+        var fade = AtDisplayRate(new DoubleAnimation(0, 1, TimeSpan.FromSeconds(seconds * 0.75))
         {
             EasingFunction = ease,
             FillBehavior = FillBehavior.Stop
-        };
+        });
 
         element.BeginAnimation(UIElement.OpacityProperty, fade);
         scale.BeginAnimation(ScaleTransform.ScaleXProperty, bounce);
@@ -54,7 +56,7 @@ public static class UiAnimations
         element.RenderTransform = scale;
 
         var ease = new CubicEase { EasingMode = EasingMode.EaseOut };
-        var animation = new DoubleAnimationUsingKeyFrames { FillBehavior = FillBehavior.Stop };
+        var animation = AtDisplayRate(new DoubleAnimationUsingKeyFrames { FillBehavior = FillBehavior.Stop });
         animation.KeyFrames.Add(new EasingDoubleKeyFrame(1, KeyTime.FromTimeSpan(TimeSpan.Zero)));
         animation.KeyFrames.Add(new EasingDoubleKeyFrame(1.08, KeyTime.FromTimeSpan(TimeSpan.FromMilliseconds(85)))
         {
@@ -74,7 +76,7 @@ public static class UiAnimations
         var transform = element.RenderTransform as TranslateTransform ?? new TranslateTransform();
         element.RenderTransform = transform;
 
-        var animation = new DoubleAnimationUsingKeyFrames { FillBehavior = FillBehavior.Stop };
+        var animation = AtDisplayRate(new DoubleAnimationUsingKeyFrames { FillBehavior = FillBehavior.Stop });
         animation.KeyFrames.Add(new EasingDoubleKeyFrame(0, KeyTime.FromTimeSpan(TimeSpan.Zero)));
         animation.KeyFrames.Add(new EasingDoubleKeyFrame(-7, KeyTime.FromTimeSpan(TimeSpan.FromMilliseconds(50))));
         animation.KeyFrames.Add(new EasingDoubleKeyFrame(7, KeyTime.FromTimeSpan(TimeSpan.FromMilliseconds(110))));
@@ -98,26 +100,32 @@ public static class UiAnimations
         element.Opacity = 1;
 
         var ease = new CubicEase { EasingMode = EasingMode.EaseOut };
-        var fade = new DoubleAnimation(0, 1, TimeSpan.FromMilliseconds(210))
+        var fade = AtDisplayRate(new DoubleAnimation(0, 1, TimeSpan.FromMilliseconds(210))
         {
             EasingFunction = ease,
             FillBehavior = FillBehavior.Stop
-        };
-        var slide = new DoubleAnimation(14, 0, TimeSpan.FromMilliseconds(260))
+        });
+        var slide = AtDisplayRate(new DoubleAnimation(14, 0, TimeSpan.FromMilliseconds(260))
         {
             EasingFunction = ease,
             FillBehavior = FillBehavior.Stop
-        };
-        var grow = new DoubleAnimation(0.985, 1, TimeSpan.FromMilliseconds(260))
+        });
+        var grow = AtDisplayRate(new DoubleAnimation(0.985, 1, TimeSpan.FromMilliseconds(260))
         {
             EasingFunction = ease,
             FillBehavior = FillBehavior.Stop
-        };
+        });
         var growY = grow.Clone();
 
         element.BeginAnimation(UIElement.OpacityProperty, fade);
         translate.BeginAnimation(TranslateTransform.YProperty, slide);
         scale.BeginAnimation(ScaleTransform.ScaleXProperty, grow);
         scale.BeginAnimation(ScaleTransform.ScaleYProperty, growY);
+    }
+
+    private static T AtDisplayRate<T>(T timeline) where T : Timeline
+    {
+        timeline.SetValue(Timeline.DesiredFrameRateProperty, DesiredFrameRate);
+        return timeline;
     }
 }

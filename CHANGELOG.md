@@ -1,5 +1,10 @@
 # Istorija verzija / Build history
 
+## [1.0.0-alpha.10] - 2026-11-20
+- Bot sada odbija slabije kombinacije ako ima bolju alternativu: Minimum iznad 9, Maksimum ispod 26, Ful ispod 48 i rani Triling ispod 32 uzimaju se samo kada zaista nema boljeg poteza.
+- Animacije sada rade sa željenom frekvencijom od 165 fps, uklonjeno je nepotrebno kašnjenje posle bacanja i senka na privremenim kockama, a kocke se ne rekonstruišu kad se nisu promenile.
+- Smanjen je broj redundantnih `GetGameAsync` poziva oko bacanja kocaka i bot poteza.
+
 ## [1.0.0-alpha.9] - 2026-11-20
 - Bot sada igra strategijski „grandmaster“: rano otvara ograničene kolone, čuva Slobodnu kolonu za kasniju fazu i kažnjava trošenje vrednih redova u pogrešnom trenutku.
 - Bot sada cilja 60+ poena u svakoj brojnoj koloni za bonus od 30, prati projekciju ka tom cilju i agresivnije maksimizira razliku Maks–Min.

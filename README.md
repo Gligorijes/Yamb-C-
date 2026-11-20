@@ -9,6 +9,7 @@ A modern Windows implementation of the Balkan dice game **Yamb**, built with .NE
 ## Features
 
 - Single-player, local two-player and play-against-bot games with fast strategic dice holding, announcement decisions, maximum-column targeting, upper-section bonus planning, early straight locking, Max–Min optimization, lightweight learning from completed bot games and a visible bot-thinking indicator.
+- Smooth high-refresh-rate animations with reduced roll dead time and fewer redundant UI rebuilds.
 - 4 to 10 score columns, with 5 or 6 dice.
 - Automatic and manual scoring modes.
 - Manual announcement confirmation after the third roll.

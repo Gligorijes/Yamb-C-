@@ -209,6 +209,67 @@ public class BotAdvisorTests
     }
 
     [Fact]
+    public void ChooseMove_AvoidsMinimumAboveNine()
+    {
+        var game = CreateGame(3, null, null, (4, false), (4, false), (4, false), (5, false), (6, false), (6, false));
+        var moves = new[]
+        {
+            new AvailableMoveDto(Column.Free, Row.Min, 23),
+            new AvailableMoveDto(Column.Downward, Row.Max, 25)
+        };
+
+        var move = _advisor.ChooseMove(game, moves);
+
+        move!.Row.Should().Be(Row.Max);
+    }
+
+    [Fact]
+    public void ChooseMove_ValuesSolidMaximum()
+    {
+        var columns = Enum.GetValues<Column>().Where(column => column != Column.Maximum).ToList();
+        var game = CreateGame(3, columns, null, (5, false), (5, false), (5, false), (6, false), (6, false), (6, false));
+        var moves = new[]
+        {
+            new AvailableMoveDto(Column.Free, Row.Min, 27),
+            new AvailableMoveDto(Column.Downward, Row.Max, 28)
+        };
+
+        var move = _advisor.ChooseMove(game, moves);
+
+        move!.Row.Should().Be(Row.Max);
+    }
+
+    [Fact]
+    public void ChooseMove_AvoidsWeakFullHouseEarly()
+    {
+        var game = CreateGame(3, null, null, (4, false), (4, false), (4, false), (2, false), (2, false), (6, false));
+        var moves = new[]
+        {
+            new AvailableMoveDto(Column.Free, Row.FullHouse, 46),
+            new AvailableMoveDto(Column.Downward, Row.ThreeOfAKind, 32)
+        };
+
+        var move = _advisor.ChooseMove(game, moves);
+
+        move!.Row.Should().Be(Row.ThreeOfAKind);
+    }
+
+    [Fact]
+    public void ChooseMove_AvoidsWeakThreeOfAKindEarly()
+    {
+        var game = CreateGame(3, null, null, (3, false), (3, false), (3, false), (5, false), (5, false), (6, false));
+        var moves = new[]
+        {
+            new AvailableMoveDto(Column.Free, Row.ThreeOfAKind, 29),
+            new AvailableMoveDto(Column.Downward, Row.Fives, 10)
+        };
+
+        var move = _advisor.ChooseMove(game, moves);
+
+        move!.Row.Should().Be(Row.Fives);
+    }
+
+    [Fact]
     public void ChooseMove_UsesLearnedExperienceWhenHeuristicIsTied()
     {
         var favored = new AvailableMoveDto(Column.Upward, Row.Sixes, 30);

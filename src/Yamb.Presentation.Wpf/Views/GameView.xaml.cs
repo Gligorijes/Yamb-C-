@@ -18,6 +18,7 @@ namespace Yamb.Presentation.Wpf.Views;
 public partial class GameView : UserControl
 {
     private const int MaxRollsPerTurn = 3;
+    private const int DesiredFrameRate = 165;
 
     private static readonly IReadOnlyDictionary<Column, string> ColumnHeaders =
         new Dictionary<Column, string>
@@ -109,6 +110,7 @@ public partial class GameView : UserControl
     private readonly List<SheetView> _sheets = new();
     private IReadOnlyList<Column> _columns = Array.Empty<Column>();
     private readonly Dictionary<int, DiceSetDto> _diceCache = new();
+    private readonly Dictionary<int, string> _diceViewSignatures = new();
     private readonly Dictionary<(int PlayerIndex, Column Column, Row Row), int> _availableMoves = new();
     private readonly List<StackPanel> _diceRows = new();
     private readonly Random _random = new();
@@ -245,11 +247,10 @@ public partial class GameView : UserControl
         {
             int playerIndex = game.CurrentPlayerIndex;
 
-            await _gameService.RollDiceAsync(_gameId, playerIndex);
-            var fresh = await _gameService.GetGameAsync(_gameId);
+            var fresh = await _gameService.RollDiceAsync(_gameId, playerIndex);
 
             await AnimateRollAsync(playerIndex, fresh.Dice);
-            await RefreshAsync();
+            await RefreshAsync(fresh);
         });
     }
 
@@ -258,6 +259,7 @@ public partial class GameView : UserControl
         var row = _diceRows.ElementAtOrDefault(playerIndex);
         if (row is null) return;
 
+        _diceViewSignatures.Remove(playerIndex);
         row.Children.Clear();
         var ease = new CubicEase { EasingMode = EasingMode.EaseOut };
 
@@ -274,27 +276,27 @@ public partial class GameView : UserControl
             int delay = i * 28;
             double startAngle = die.IsHeld ? 0 : _random.NextDouble() * 30 - 15;
 
-            var drop = new DoubleAnimation(-12, 0, TimeSpan.FromMilliseconds(300))
+            var drop = AtDisplayRate(new DoubleAnimation(-12, 0, TimeSpan.FromMilliseconds(300))
             {
                 BeginTime = TimeSpan.FromMilliseconds(delay),
                 EasingFunction = ease,
                 FillBehavior = FillBehavior.Stop
-            };
+            });
             translate.BeginAnimation(TranslateTransform.YProperty, drop);
 
-            var spin = new DoubleAnimation(startAngle, 0, TimeSpan.FromMilliseconds(300))
+            var spin = AtDisplayRate(new DoubleAnimation(startAngle, 0, TimeSpan.FromMilliseconds(300))
             {
                 BeginTime = TimeSpan.FromMilliseconds(delay),
                 EasingFunction = ease,
                 FillBehavior = FillBehavior.Stop
-            };
+            });
             rotate.BeginAnimation(RotateTransform.AngleProperty, spin);
 
-            var bounce = new DoubleAnimationUsingKeyFrames
+            var bounce = AtDisplayRate(new DoubleAnimationUsingKeyFrames
             {
                 BeginTime = TimeSpan.FromMilliseconds(delay),
                 FillBehavior = FillBehavior.Stop
-            };
+            });
             bounce.KeyFrames.Add(new EasingDoubleKeyFrame(0.82, KeyTime.FromTimeSpan(TimeSpan.Zero)));
             bounce.KeyFrames.Add(new EasingDoubleKeyFrame(1.06, KeyTime.FromTimeSpan(TimeSpan.FromMilliseconds(190)))
             {
@@ -307,7 +309,7 @@ public partial class GameView : UserControl
             scale.BeginAnimation(ScaleTransform.ScaleXProperty, bounce);
             scale.BeginAnimation(ScaleTransform.ScaleYProperty, bounce.Clone());
 
-            container.BeginAnimation(UIElement.OpacityProperty, new DoubleAnimation(
+            var opacity = AtDisplayRate(new DoubleAnimation(
                 die.IsHeld ? 0.7 : 0.35,
                 die.IsHeld ? 0.55 : 1,
                 TimeSpan.FromMilliseconds(220))
@@ -316,9 +318,10 @@ public partial class GameView : UserControl
                 EasingFunction = ease,
                 FillBehavior = FillBehavior.Stop
             });
+            container.BeginAnimation(UIElement.OpacityProperty, opacity);
         }
 
-        await Task.Delay(360 + dice.Dice.Count * 28);
+        await Task.Delay(300 + Math.Max(0, dice.Dice.Count - 1) * 28);
     }
 
     private FrameworkElement BuildRollingDie(int dieIndex, int value, bool held)
@@ -331,7 +334,6 @@ public partial class GameView : UserControl
             Background = _dieBrushes[dieIndex % _dieBrushes.Length],
             CornerRadius = new CornerRadius(size * 0.18),
             Opacity = held ? 0.55 : 1.0,
-            Effect = _dieShadow,
             Child = DiceVisuals.BuildFace(value, size, WpfSettings.FaceStyle)
         };
 
@@ -512,10 +514,10 @@ public partial class GameView : UserControl
 
                 if (game.RollNumber == 0)
                 {
-                    await _gameService.RollDiceAsync(_gameId, 1);
-                    await AnimateBotRollAsync();
-                    await RefreshAsync();
-                    await TryBotAnnounceAsync();
+                    var rolled = await _gameService.RollDiceAsync(_gameId, 1);
+                    await AnimateBotRollAsync(rolled.Dice);
+                    await RefreshAsync(rolled);
+                    await TryBotAnnounceAsync(rolled);
                     await Task.Delay(480, _botCts.Token);
                     continue;
                 }
@@ -547,9 +549,9 @@ public partial class GameView : UserControl
                     foreach (int dieIndex in diceToToggle)
                         await _gameService.ToggleHoldAsync(_gameId, 1, dieIndex);
 
-                    await _gameService.RollDiceAsync(_gameId, 1);
-                    await AnimateBotRollAsync();
-                    await RefreshAsync();
+                    var rolled = await _gameService.RollDiceAsync(_gameId, 1);
+                    await AnimateBotRollAsync(rolled.Dice);
+                    await RefreshAsync(rolled);
                     await Task.Delay(480, _botCts.Token);
                     continue;
                 }
@@ -579,9 +581,8 @@ public partial class GameView : UserControl
         }
     }
 
-    private async Task TryBotAnnounceAsync()
+    private async Task TryBotAnnounceAsync(GameDto game)
     {
-        var game = await _gameService.GetGameAsync(_gameId);
         if (game.AnnouncedRow.HasValue || game.RollNumber == 0) return;
 
         var moves = await _gameService.GetAvailableMovesAsync(_gameId, 1);
@@ -595,15 +596,14 @@ public partial class GameView : UserControl
         await RefreshAsync();
     }
 
-    private async Task AnimateBotRollAsync()
+    private async Task AnimateBotRollAsync(DiceSetDto dice)
     {
-        var fresh = await _gameService.GetGameAsync(_gameId);
-        await AnimateRollAsync(1, fresh.Dice);
+        await AnimateRollAsync(1, dice);
     }
 
-    private async Task RefreshAsync()
+    private async Task RefreshAsync(GameDto? knownGame = null)
     {
-        var game = await _gameService.GetGameAsync(_gameId);
+        var game = knownGame ?? await _gameService.GetGameAsync(_gameId);
         _lastGame = game;
         _diceCache[game.CurrentPlayerIndex] = game.Dice;
 
@@ -717,6 +717,7 @@ public partial class GameView : UserControl
         ContentGrid.Children.Clear();
         _sheets.Clear();
         _diceRows.Clear();
+        _diceViewSignatures.Clear();
 
         var content = twoPlayers ? BuildTwoPlayerLayout(game) : BuildSingleLayout(game);
         ContentGrid.Children.Add(content);
@@ -1404,14 +1405,19 @@ public partial class GameView : UserControl
         for (int p = 0; p < _diceRows.Count; p++)
         {
             var stack = _diceRows[p];
-            stack.Children.Clear();
             var dice = _diceCache.TryGetValue(p, out var cached) ? cached : game.Dice;
             bool canHold = p == game.CurrentPlayerIndex
                 && game.RollNumber >= 1
                 && game.RollNumber < MaxRollsPerTurn
                 && !game.IsGameOver
                 && !IsBotTurn(game);
+            string signature = $"{WpfSettings.DieSize}|{WpfSettings.FaceStyle}|{canHold}|" +
+                string.Join(',', dice.Dice.Select(die => $"{die.Value}:{die.IsHeld}"));
+            if (_diceViewSignatures.TryGetValue(p, out string? previous) && previous == signature)
+                continue;
+            _diceViewSignatures[p] = signature;
 
+            stack.Children.Clear();
             for (int i = 0; i < dice.Dice.Count; i++)
             {
                 stack.Children.Add(CreateDie(p, i, dice.Dice[i], canHold));
@@ -1459,6 +1465,12 @@ public partial class GameView : UserControl
         AutomationProperties.SetName(button, $"{DieName(dieIndex)}: {die.Value}|{die.IsHeld}");
         button.Click += async (_, _) => await OnDieClick(playerIndex, dieIndex);
         return button;
+    }
+
+    private static T AtDisplayRate<T>(T timeline) where T : Timeline
+    {
+        timeline.SetValue(Timeline.DesiredFrameRateProperty, DesiredFrameRate);
+        return timeline;
     }
 
     private static Brush MakeAccentTint(Brush accent)

@@ -50,6 +50,11 @@ $exe = Join-Path $repoRoot 'src\Yamb.Presentation.Wpf\bin\Release\net8.0-windows
 $dataDir = Join-Path $env:LOCALAPPDATA 'Yamb'
 $backup = Join-Path $env:TEMP ("yamb-visual-backup-" + [Guid]::NewGuid().ToString('N'))
 $shotDir = Join-Path $env:TEMP 'yamb-visual-shots'
+$graphicsKey = 'HKCU:\Software\Microsoft\Avalon.Graphics'
+$hwAccelName = 'DISABLEHWACCELERATION'
+$hwAccelProperty = Get-ItemProperty -Path $graphicsKey -Name $hwAccelName -ErrorAction SilentlyContinue
+$hadHwAccelProperty = $null -ne $hwAccelProperty
+$oldHwAccelValue = if ($hadHwAccelProperty) { $hwAccelProperty.$hwAccelName } else { $null }
 
 function Get-AppWindows([int]$procId) {
     [Native]::WindowsOf([uint32]$procId) | ForEach-Object {
@@ -155,6 +160,7 @@ if (Test-Path $dataDir) { Move-Item -LiteralPath $dataDir -Destination $backup }
 if (Test-Path $shotDir) { Remove-Item -Recurse -Force $shotDir }
 New-Item -ItemType Directory -Path $shotDir | Out-Null
 
+New-ItemProperty -Path $graphicsKey -Name $hwAccelName -PropertyType DWord -Value 1 -Force | Out-Null
 $p = Start-Process -FilePath $exe -PassThru
 $ok = $false
 try {
@@ -283,5 +289,10 @@ try {
     Start-Sleep -Milliseconds 400
     if (Test-Path $dataDir) { Remove-Item -Recurse -Force $dataDir -ErrorAction SilentlyContinue }
     if (Test-Path $backup) { Move-Item -LiteralPath $backup -Destination $dataDir }
+    if ($hadHwAccelProperty) {
+        New-ItemProperty -Path $graphicsKey -Name $hwAccelName -PropertyType DWord -Value $oldHwAccelValue -Force | Out-Null
+    } else {
+        Remove-ItemProperty -Path $graphicsKey -Name $hwAccelName -ErrorAction SilentlyContinue
+    }
 }
 if (-not $ok) { exit 1 }

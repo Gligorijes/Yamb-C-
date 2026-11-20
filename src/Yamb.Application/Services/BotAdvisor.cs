@@ -211,6 +211,7 @@ public sealed class BotAdvisor : IBotAdvisor
         };
         value -= Math.Max(0, maximum - score) * regretWeight * (0.35 + 0.65 * open);
         if (score == 0) value -= (move.Row == Row.Yamb ? 20 : 12) * (0.5 + 0.5 * open);
+        value -= TargetScorePenalty(move.Row, score, open, fill);
 
         if (numberRow) value += UpperBonusPotential(cells, move.Row, score);
         if (move.Row is Row.Max or Row.Min or Row.Ones)
@@ -249,6 +250,19 @@ public sealed class BotAdvisor : IBotAdvisor
         column is Column.Downward or Column.Upward or Column.BothEnds or Column.MiddleOut
             or Column.Hand or Column.Directed or Column.Obligatory or Column.Announcement;
 
+    private static double TargetScorePenalty(Row row, int score, double open, double fill)
+    {
+        double early = Math.Clamp(1 - fill / 0.45, 0, 1);
+        return row switch
+        {
+            Row.Min => Math.Max(0, score - 9) * 2.2 * (0.5 + 0.5 * open),
+            Row.Max => Math.Max(0, 26 - score) * 1.6 * (0.5 + 0.5 * open),
+            Row.FullHouse => Math.Max(0, 48 - score) * 1.4 * (0.7 + 0.3 * open),
+            Row.ThreeOfAKind => Math.Max(0, 32 - score) * 1.6 * (0.25 + 0.75 * early),
+            _ => 0
+        };
+    }
+
     private static double UpperBonusPotential(
         IReadOnlyDictionary<Row, int?>? cells,
         Row row,
@@ -286,8 +300,8 @@ public sealed class BotAdvisor : IBotAdvisor
         if (cells is null) return 0;
 
         int ones = row == Row.Ones ? score : GetCell(cells, Row.Ones) ?? 4;
-        int max = row == Row.Max ? score : GetCell(cells, Row.Max) ?? 24;
-        int min = row == Row.Min ? score : GetCell(cells, Row.Min) ?? 10;
+        int max = row == Row.Max ? score : GetCell(cells, Row.Max) ?? 26;
+        int min = row == Row.Min ? score : GetCell(cells, Row.Min) ?? 9;
         double potential = Math.Max(0, max - min) * Math.Max(0, ones);
         double weight = row switch
         {
