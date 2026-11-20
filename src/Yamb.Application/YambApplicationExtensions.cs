@@ -13,6 +13,7 @@ public static class YambApplicationExtensions
         services.AddScoped<IGameService, GameService>();
         services.AddScoped<ILeaderboardService, LeaderboardService>();
         services.AddSingleton<IBotAdvisor, BotAdvisor>();
+        services.AddSingleton<IBotExperienceStore, NullBotExperienceStore>();
         services.AddSingleton<IAnalyticsService, NoOpAnalyticsService>();
         return services;
     }

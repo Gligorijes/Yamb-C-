@@ -1,5 +1,11 @@
 # Istorija verzija / Build history
 
+## [1.0.0-alpha.9] - 2026-11-20
+- Bot sada igra strategijski „grandmaster“: rano otvara ograničene kolone, čuva Slobodnu kolonu za kasniju fazu i kažnjava trošenje vrednih redova u pogrešnom trenutku.
+- Bot sada cilja 60+ poena u svakoj brojnoj koloni za bonus od 30, prati projekciju ka tom cilju i agresivnije maksimizira razliku Maks–Min.
+- Bot odmah upisuje jaku kentu dobijenu u prvom ili drugom bacanju, umesto da je rizikuje i pretori u slabiju kentu u trećem bacanju.
+- Dodato je lagano učenje iz završenih partija protiv bota: odluke i ishod se čuvaju u `%LOCALAPPDATA%\Yamb\bot-experience.json` i koriste kao mala korekcija ocene poteza.
+
 ## [1.0.0-alpha.8] - 2026-11-20
 - Bot sada znatno brže bira kocke za zadržavanje i najavu: pretraga je ograničena na najperspektivnije kombinacije, uz uzorkovanje ishoda bacanja i snažnije keširanje.
 - Zadržana je strategija iz alpha.7: rekurzivno planiranje do poslednjeg bacanja, stvarne bonuse i dozvoljene najave.

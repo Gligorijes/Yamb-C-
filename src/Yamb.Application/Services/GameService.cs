@@ -1,6 +1,7 @@
 using Yamb.Application.DTOs;
 using Yamb.Application.Exceptions;
 using Yamb.Application.Interfaces;
+using Yamb.Application.Models;
 using Yamb.Domain.Aggregates;
 using Yamb.Domain.Enums;
 using Yamb.Domain.Rules;
@@ -13,17 +14,20 @@ public sealed class GameService : IGameService
     private readonly IGameRepository _gameRepository;
     private readonly ILeaderboardService _leaderboardService;
     private readonly IAnalyticsService _analytics;
+    private readonly IBotExperienceStore _experience;
     private readonly GameRuleset _ruleset;
 
     public GameService(
         IGameRepository gameRepository,
         ILeaderboardService leaderboardService,
         IAnalyticsService analytics,
-        GameRuleset ruleset)
+        GameRuleset ruleset,
+        IBotExperienceStore? experience = null)
     {
         _gameRepository = gameRepository;
         _leaderboardService = leaderboardService;
         _analytics = analytics;
+        _experience = experience ?? NullBotExperienceStore.Instance;
         _ruleset = ruleset;
     }
 
@@ -129,6 +133,20 @@ public sealed class GameService : IGameService
             var bestScore = leaderboardScores.Max(s => s.Score);
             await _analytics.TrackHighScoreAchievedAsync(
                 bestScore, string.Join(", ", leaderboardScores.Select(s => s.Name)));
+        }
+
+        if (game.Mode == GameMode.VersusComputer && game.Players.Count > 1)
+        {
+            int human = game.Players[0].Scoresheet.FinalScore ?? 0;
+            int bot = game.Players[1].Scoresheet.FinalScore ?? 0;
+            double reward = Math.Clamp((bot - human) / 150.0, -1, 1);
+            try
+            {
+                await _experience.CompleteGameAsync(game.Id, reward);
+            }
+            catch
+            {
+            }
         }
     }
 

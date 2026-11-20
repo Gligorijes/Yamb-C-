@@ -4,6 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Yamb.Application.Interfaces;
 using Yamb.Application.Options;
+using Yamb.Infrastructure.Learning;
 using Yamb.Infrastructure.Persistence;
 
 namespace Yamb.Infrastructure;
@@ -29,6 +30,7 @@ public static class YambInfrastructureExtensions
         services.AddDbContext<YambDbContext>(options => options.UseSqlite(connectionString));
         services.AddScoped<IGameRepository, EfGameRepository>();
         services.AddScoped<ILeaderboardRepository, EfLeaderboardRepository>();
+        services.AddSingleton<IBotExperienceStore, JsonBotExperienceStore>();
         services.AddOptions<LeaderboardOptions>();
 
         return services;

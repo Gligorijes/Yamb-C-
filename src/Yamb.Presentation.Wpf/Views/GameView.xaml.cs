@@ -523,6 +523,24 @@ public partial class GameView : UserControl
                 if (game.RollNumber < MaxRollsPerTurn)
                 {
                     var moves = await _gameService.GetAvailableMovesAsync(_gameId, 1);
+                    bool finishNow = await Task.Run(
+                        () => _botAdvisor.ShouldFinishTurn(game, moves),
+                        _botCts.Token);
+                    if (finishNow)
+                    {
+                        var early = await Task.Run(
+                            () => _botAdvisor.ChooseMove(game, moves),
+                            _botCts.Token);
+                        if (early is not null)
+                        {
+                            await _gameService.WriteScoreAsync(_gameId, 1, early.Column, early.Row);
+                            await RefreshAsync();
+                            PulseCell(1, early.Column, early.Row);
+                            await Task.Delay(320, _botCts.Token);
+                            continue;
+                        }
+                    }
+
                     var diceToToggle = await Task.Run(
                         () => _botAdvisor.ChooseDiceToHold(game, moves),
                         _botCts.Token);

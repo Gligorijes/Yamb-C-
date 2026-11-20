@@ -9,6 +9,8 @@ public interface IBotAdvisor
 
     IReadOnlyList<int> ChooseDiceToHold(GameDto game, IReadOnlyList<AvailableMoveDto> moves);
 
+    bool ShouldFinishTurn(GameDto game, IReadOnlyList<AvailableMoveDto> moves);
+
     Row? ChooseAnnouncement(
         GameDto game,
         IReadOnlyList<AvailableMoveDto> moves,

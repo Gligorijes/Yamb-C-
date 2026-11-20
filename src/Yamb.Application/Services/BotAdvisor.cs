@@ -1,6 +1,7 @@
 using System.Collections.Concurrent;
 using Yamb.Application.DTOs;
 using Yamb.Application.Interfaces;
+using Yamb.Application.Models;
 using Yamb.Domain.Enums;
 using Yamb.Domain.Rules;
 using Yamb.Domain.Services;
@@ -13,10 +14,12 @@ public sealed class BotAdvisor : IBotAdvisor
     private static readonly ConcurrentDictionary<(int Count, int Limit), IReadOnlyList<RollOutcome>> SampledOutcomeCache = new();
     private static readonly ConcurrentDictionary<string, IReadOnlyList<int>> ScoreCache = new(StringComparer.Ordinal);
     private readonly GameRuleset _rules;
+    private readonly IBotExperienceStore _experience;
 
-    public BotAdvisor(GameRuleset? ruleset = null)
+    public BotAdvisor(GameRuleset? ruleset = null, IBotExperienceStore? experience = null)
     {
         _rules = ruleset ?? GameRuleset.Default;
+        _experience = experience ?? NullBotExperienceStore.Instance;
     }
 
     public AvailableMoveDto? ChooseMove(GameDto game, IReadOnlyList<AvailableMoveDto> moves)
@@ -24,7 +27,10 @@ public sealed class BotAdvisor : IBotAdvisor
         var rules = RulesFor(game);
         var plan = CreatePlan(game, moves, rules, game.AnnouncedRow);
         var counts = ToCounts(game.Dice.Dice.Select(die => die.Value));
-        return plan.BestMove(counts, game.RollNumber, game.AllDiceThrownThisRoll)?.Move;
+        var choice = plan.BestMove(counts, game.RollNumber, game.AllDiceThrownThisRoll);
+        if (choice?.Move is { } chosen)
+            Remember(game, BotDecisionKind.Move, BotExperienceKeys.Move(chosen));
+        return choice?.Move;
     }
 
     public IReadOnlyList<int> ChooseDiceToHold(GameDto game, IReadOnlyList<AvailableMoveDto> moves)
@@ -37,7 +43,21 @@ public sealed class BotAdvisor : IBotAdvisor
         var plan = CreatePlan(game, moves, rules, game.AnnouncedRow);
         var counts = ToCounts(game.Dice.Dice.Select(die => die.Value));
         var decision = plan.ChooseHold(counts, game.RollNumber, game.AllDiceThrownThisRoll);
+        Remember(game, BotDecisionKind.Hold, BotExperienceKeys.Hold(decision.KeptCounts));
         return DiceToToggle(game, decision.KeptCounts);
+    }
+
+    public bool ShouldFinishTurn(GameDto game, IReadOnlyList<AvailableMoveDto> moves)
+    {
+        var rules = RulesFor(game);
+        if (game.RollNumber < 1 || game.RollNumber >= rules.MaxRollsPerTurn)
+            return false;
+
+        var plan = CreatePlan(game, moves, rules, game.AnnouncedRow);
+        var counts = ToCounts(game.Dice.Dice.Select(die => die.Value));
+        var choice = plan.BestMove(counts, game.RollNumber, game.AllDiceThrownThisRoll);
+        return choice is not null &&
+               plan.IsPremiumWrite(choice.Move, counts, game.RollNumber, game.AllDiceThrownThisRoll);
     }
 
     public Row? ChooseAnnouncement(
@@ -49,14 +69,15 @@ public sealed class BotAdvisor : IBotAdvisor
             return null;
 
         var rules = RulesFor(game);
+        var engine = new ScoringEngine(rules);
         var counts = ToCounts(game.Dice.Dice.Select(die => die.Value));
         var baseline = CreatePlan(game, moves, rules, null)
             .ExpectedValue(counts, game.RollNumber, game.AllDiceThrownThisRoll);
 
         var shortlist = candidates
             .Where(candidate => !IsFilled(game, candidate.Column, candidate.Row))
-            .OrderByDescending(candidate => candidate.PreviewScore)
-            .Take(5)
+            .OrderByDescending(candidate => candidate.PreviewScore + engine.GetMaximum(candidate.Row) * 0.25)
+            .Take(7)
             .ToList();
 
         AvailableMoveDto? best = null;
@@ -72,7 +93,19 @@ public sealed class BotAdvisor : IBotAdvisor
             }
         }
 
-        return bestValue > baseline + 1.5 ? best?.Row : null;
+        var selection = bestValue > baseline + 1.5 ? best?.Row : null;
+        Remember(game, BotDecisionKind.Announcement, BotExperienceKeys.Announcement(selection));
+        return selection;
+    }
+
+    private void Remember(GameDto game, BotDecisionKind kind, string moveKey)
+    {
+        _experience.RememberDecision(new BotDecisionRecord(
+            game.Id,
+            kind,
+            BotExperienceKeys.State(game),
+            moveKey,
+            DateTime.UtcNow));
     }
 
     private Plan CreatePlan(
@@ -153,33 +186,121 @@ public sealed class BotAdvisor : IBotAdvisor
         double fill = sheet.TotalCells == 0 ? 1 : (double)sheet.FilledCells / sheet.TotalCells;
         double open = 1 - fill;
         int maximum = engine.GetMaximum(move.Row);
-        bool numberRow = move.Row is >= Row.Ones and <= Row.Sixes;
+        bool numberRow = IsNumberRow(move.Row);
+        bool free = move.Column == Column.Free;
+        bool constrained = IsConstrainedColumn(move.Column);
+        IReadOnlyDictionary<Row, int?>? cells = null;
+        int columnFilled = 0;
+        if (sheet.Cells.TryGetValue(move.Column, out var columnCells))
+        {
+            cells = columnCells;
+            columnFilled = columnCells.Count(pair => pair.Value.HasValue);
+        }
+
+        int columnEmpty = Math.Max(0, Enum.GetValues<Row>().Length - columnFilled);
+        int remainingTurns = Math.Max(1, sheet.TotalCells - sheet.FilledCells);
+        double columnUrgency = Math.Clamp((double)columnEmpty / remainingTurns, 0, 2.5);
 
         double value = score + bonusDelta;
-        value -= Math.Max(0, maximum - score) * (numberRow ? 0.28 : 0.05) * open;
-        if (score == 0) value -= 12 * (0.5 + 0.5 * open);
-
-        if (move.Row == Row.Ones) value += score * 0.25;
-        if (move.Row == Row.Max) value += score * 0.1;
-        if (move.Row == Row.Min) value += (30 - score) * 0.12 * open;
-        if (move.Row is Row.Straight or Row.ThreeOfAKind or Row.FullHouse
-            or Row.FourOfAKind or Row.Yamb)
-            value += score * 0.05;
-
-        value += move.Column switch
+        double regretWeight = numberRow ? 0.22 : move.Row switch
         {
-            Column.Maximum => 10,
-            Column.Announcement => 8,
-            Column.Directed => 6,
+            Row.Yamb => 0.4,
+            Row.FourOfAKind => 0.3,
+            Row.FullHouse or Row.Straight or Row.ThreeOfAKind => 0.22,
+            _ => 0.06
+        };
+        value -= Math.Max(0, maximum - score) * regretWeight * (0.35 + 0.65 * open);
+        if (score == 0) value -= (move.Row == Row.Yamb ? 20 : 12) * (0.5 + 0.5 * open);
+
+        if (numberRow) value += UpperBonusPotential(cells, move.Row, score);
+        if (move.Row is Row.Max or Row.Min or Row.Ones)
+            value += MaxMinPotential(cells, move.Row, score, open);
+        if (IsHighCeilingRow(move.Row)) value += score * 0.06 * (0.5 + 0.5 * open);
+        if (move.Row == Row.Straight && score >= 56) value += 16 * (0.4 + 0.6 * open);
+
+        double columnBias = move.Column switch
+        {
+            Column.Maximum => 3 + (columnFilled == 0 ? 2 : 0),
+            Column.Announcement => 7 + (columnFilled == 0 ? 4 : 0),
+            Column.Directed => 4,
             Column.Hand => 4,
-            Column.Free => 3,
-            Column.Downward or Column.Upward or Column.BothEnds
-                or Column.MiddleOut or Column.Obligatory => 2,
             _ => 0
         };
+        if (constrained)
+        {
+            columnBias += (columnFilled == 0 ? 9 : columnFilled <= 3 ? 6 :
+                columnFilled >= 10 ? 4 + 2 * columnUrgency : 2) + 2 * columnUrgency;
+        }
+        if (free) columnBias = -11 + 15 * fill;
 
-        return value;
+        if (IsHighCeilingRow(move.Row) && score < maximum * 0.6 &&
+            columnFilled < 4 && !free)
+            value -= 5 * open;
+
+        return value + columnBias;
     }
+
+    private static bool IsNumberRow(Row row) => row is >= Row.Ones and <= Row.Sixes;
+
+    private static bool IsHighCeilingRow(Row row) =>
+        row is Row.Yamb or Row.FourOfAKind or Row.FullHouse or Row.Straight;
+
+    private static bool IsConstrainedColumn(Column column) =>
+        column is Column.Downward or Column.Upward or Column.BothEnds or Column.MiddleOut
+            or Column.Hand or Column.Directed or Column.Obligatory or Column.Announcement;
+
+    private static double UpperBonusPotential(
+        IReadOnlyDictionary<Row, int?>? cells,
+        Row row,
+        int score)
+    {
+        if (cells is null) return 0;
+
+        int sum = 0;
+        int remaining = 0;
+        foreach (var candidate in Enum.GetValues<Row>())
+        {
+            if (!IsNumberRow(candidate)) continue;
+            int? value = GetCell(cells, candidate);
+            if (value.HasValue) sum += value.Value;
+            else remaining++;
+        }
+
+        if (GetCell(cells, row) is null)
+        {
+            sum += score;
+            remaining = Math.Max(0, remaining - 1);
+        }
+
+        double needed = 60.0 / Math.Max(1, remaining + 1);
+        double alignment = (score - needed) / 6.0;
+        return Math.Clamp(alignment, -3, 5) * (remaining <= 2 ? 1.3 : 0.8);
+    }
+
+    private static double MaxMinPotential(
+        IReadOnlyDictionary<Row, int?>? cells,
+        Row row,
+        int score,
+        double open)
+    {
+        if (cells is null) return 0;
+
+        int ones = row == Row.Ones ? score : GetCell(cells, Row.Ones) ?? 4;
+        int max = row == Row.Max ? score : GetCell(cells, Row.Max) ?? 24;
+        int min = row == Row.Min ? score : GetCell(cells, Row.Min) ?? 10;
+        double potential = Math.Max(0, max - min) * Math.Max(0, ones);
+        double weight = row switch
+        {
+            Row.Max => 0.22,
+            Row.Min => 0.24,
+            Row.Ones => 0.08,
+            _ => 0
+        };
+        return potential * weight * (0.6 + 0.4 * open);
+    }
+
+    private static int? GetCell(IReadOnlyDictionary<Row, int?> cells, Row row) =>
+        cells.TryGetValue(row, out int? value) && value.HasValue ? value : null;
 
     private static int BonusDelta(
         GameDto game,
@@ -298,6 +419,46 @@ public sealed class BotAdvisor : IBotAdvisor
         return priority;
     }
 
+    private double TargetedHoldPriority(
+        int[] kept,
+        IReadOnlyList<AvailableMoveDto> candidates,
+        string stateKey)
+    {
+        int maxCount = kept.Max();
+        int maxFace = Array.IndexOf(kept, maxCount) + 1;
+        int distinct = kept.Count(value => value > 0);
+        double priority = HoldPriority(kept);
+        priority += ExperienceBonus(BotDecisionKind.Hold, stateKey, BotExperienceKeys.Hold(kept));
+
+        if (candidates.Any(move => move.Row == Row.Straight))
+        {
+            if (distinct >= 5) priority += 32;
+            else if (distinct >= 4) priority += 18;
+        }
+
+        if (candidates.Any(move => move.Row == Row.Yamb) && maxCount >= 4)
+            priority += 20 + maxCount * maxFace;
+        if (candidates.Any(move => move.Row == Row.FourOfAKind) && maxCount >= 4)
+            priority += 12 + maxFace * 2;
+        if (candidates.Any(move => move.Row == Row.ThreeOfAKind) && maxCount >= 3)
+            priority += 8 + maxFace;
+        if (candidates.Any(move => move.Row == Row.Ones)) priority += kept[0] * 4;
+        if (candidates.Any(move => move.Row == Row.Max)) priority += kept[5] * 5;
+        if (candidates.Any(move => move.Row == Row.Min))
+            priority += kept[0] * 3 + kept[1] * 2;
+
+        return priority;
+    }
+
+    private double ExperienceBonus(BotDecisionKind kind, string stateKey, string moveKey)
+    {
+        var value = _experience.Get(kind, stateKey, moveKey);
+        if (value is null || value.Count <= 0) return 0;
+
+        double confidence = value.Count / (value.Count + 12.0);
+        return Math.Clamp(4.0 * confidence * value.Mean, -1.5, 1.5);
+    }
+
     private static string CountKey(int[] counts) => string.Join('.', counts);
 
     private static int[] Add(int[] left, int[] right) =>
@@ -352,11 +513,19 @@ public sealed class BotAdvisor : IBotAdvisor
                 .OrderByDescending(outcome => outcome.Probability)
                 .ThenByDescending(outcome => outcome.Counts.Max())
                 .ToList();
-            var selected = new List<RollOutcome>(limit);
-            for (int i = 0; i < limit; i++)
+            var tails = ordered
+                .Where(outcome => outcome.Counts.Max() >= 5 ||
+                                  outcome.Counts.Count(value => value > 0) >= 5)
+                .ToList();
+            var pool = tails.Count >= limit
+                ? tails
+                : ordered.Where(outcome => !tails.Contains(outcome)).ToList();
+            var selected = tails.Take(limit).ToList();
+            int remaining = limit - selected.Count;
+            for (int i = 0; i < remaining; i++)
             {
-                int index = (int)((i + 0.5) * ordered.Count / limit);
-                selected.Add(ordered[index]);
+                int index = (int)((i + 0.5) * pool.Count / Math.Max(1, remaining));
+                selected.Add(pool[index]);
             }
 
             double totalWeight = selected.Sum(outcome => outcome.Probability);
@@ -394,6 +563,7 @@ public sealed class BotAdvisor : IBotAdvisor
         private readonly Dictionary<(AvailableMoveDto Move, int Score), int> _bonusDeltas = new();
         private readonly Row? _announcedRow;
         private readonly int _startRoll;
+        private readonly string _stateKey;
         private readonly Dictionary<string, double> _cache = new(StringComparer.Ordinal);
 
         public Plan(
@@ -415,6 +585,7 @@ public sealed class BotAdvisor : IBotAdvisor
                 .ToList();
             _announcedRow = announcedRow;
             _startRoll = game.RollNumber;
+            _stateKey = BotExperienceKeys.State(game);
         }
 
         public double ExpectedValue(int[] counts, int rollNumber, bool allThrown) =>
@@ -422,6 +593,16 @@ public sealed class BotAdvisor : IBotAdvisor
 
         public MoveChoice? BestMove(int[] counts, int rollNumber, bool allThrown) =>
             BestMoveInternal(counts, rollNumber, allThrown);
+
+        public bool IsPremiumWrite(
+            AvailableMoveDto move,
+            int[] counts,
+            int rollNumber,
+            bool allThrown)
+        {
+            var scores = RowScores(counts, rollNumber, _engine, _rules);
+            return LockPremium(move, scores[(int)move.Row], rollNumber) > 0;
+        }
 
         public HoldDecision ChooseHold(int[] counts, int rollNumber, bool allThrown)
         {
@@ -437,6 +618,7 @@ public sealed class BotAdvisor : IBotAdvisor
                 int nextRoll = rollNumber + 1;
                 bool nextAllThrown = Sum(kept) == 0;
                 double value = ExpectedRolls(kept, counts, nextRoll, nextAllThrown, OutcomeLimitFor(rollNumber));
+                value += _owner.ExperienceBonus(BotDecisionKind.Hold, _stateKey, BotExperienceKeys.Hold(kept));
                 if (value > best + 0.0001 ||
                     (Math.Abs(value - best) <= 0.0001 && Sum(kept) > Sum(bestKept)))
                 {
@@ -459,7 +641,7 @@ public sealed class BotAdvisor : IBotAdvisor
             int total = Sum(counts);
             var choices = SubCounts(counts)
                 .Select(kept => (int[])kept.Clone())
-                .OrderByDescending(HoldPriority)
+                .OrderByDescending(kept => _owner.TargetedHoldPriority(kept, _candidates, _stateKey))
                 .ThenByDescending(Sum)
                 .ThenBy(CountKey, StringComparer.Ordinal)
                 .Take(HoldLimitFor(rollNumber))
@@ -468,6 +650,17 @@ public sealed class BotAdvisor : IBotAdvisor
             if (!choices.Any(kept => Sum(kept) == total)) choices.Add((int[])counts.Clone());
             if (!choices.Any(kept => Sum(kept) == 0)) choices.Insert(0, new int[counts.Length]);
             return choices;
+        }
+
+        private double LockPremium(AvailableMoveDto move, int score, int rollNumber)
+        {
+            if (score <= 0) return 0;
+            int maximum = _engine.GetMaximum(move.Row);
+            if (move.Row == Row.Straight) return rollNumber == 1 ? 22 : 8;
+            if (IsHighCeilingRow(move.Row) && score == maximum)
+                return rollNumber == 1 ? 12 : 6;
+            if (move.Row == Row.Ones && score == maximum && rollNumber == 1) return 5;
+            return 0;
         }
 
         private double Evaluate(int[] counts, int rollNumber, bool allThrown)
@@ -483,6 +676,22 @@ public sealed class BotAdvisor : IBotAdvisor
             }
 
             double best = double.NegativeInfinity;
+            if (rollNumber <= 2)
+            {
+                var immediate = BestMoveInternal(counts, rollNumber, allThrown);
+                if (immediate is not null)
+                {
+                    var scores = RowScores(counts, rollNumber, _engine, _rules);
+                    double premium = LockPremium(immediate.Move, scores[(int)immediate.Move.Row], rollNumber);
+                    if (premium > 0)
+                    {
+                        double locked = immediate.Value + premium +
+                            _owner.ExperienceBonus(BotDecisionKind.Move, _stateKey, BotExperienceKeys.Move(immediate.Move));
+                        if (locked > best) best = locked;
+                    }
+                }
+            }
+
             foreach (var kept in HoldChoices(counts, rollNumber))
             {
                 bool nextAllThrown = Sum(kept) == 0;
@@ -541,13 +750,17 @@ public sealed class BotAdvisor : IBotAdvisor
                     score != _engine.GetMaximum(move.Row))
                     continue;
 
-                double value = _owner.MoveValue(
-                    _game,
-                    _engine,
-                    move,
-                    score,
-                    BonusDeltaFor(move, score));
-                if (best is null || value > best.Value)
+                    double value = _owner.MoveValue(
+                        _game,
+                        _engine,
+                        move,
+                        score,
+                        BonusDeltaFor(move, score));
+                    value += _owner.ExperienceBonus(
+                        BotDecisionKind.Move,
+                        _stateKey,
+                        BotExperienceKeys.Move(move));
+                    if (best is null || value > best.Value)
                     best = new MoveChoice(value, move);
             }
 

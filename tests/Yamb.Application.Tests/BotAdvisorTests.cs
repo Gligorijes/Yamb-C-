@@ -1,5 +1,7 @@
 using FluentAssertions;
 using Yamb.Application.DTOs;
+using Yamb.Application.Interfaces;
+using Yamb.Application.Models;
 using Yamb.Application.Services;
 using Yamb.Domain.Enums;
 using Yamb.Domain.Rules;
@@ -134,6 +136,96 @@ public class BotAdvisorTests
         row.Should().BeNull();
     }
 
+    [Fact]
+    public void ChooseMove_OpensConstrainedColumnInsteadOfFree()
+    {
+        var columns = Enum.GetValues<Column>().Where(column => column != Column.Maximum).ToList();
+        var game = CreateGame(3, columns, null, (6, false), (6, false), (6, false), (6, false), (6, false), (6, false));
+        var moves = new[]
+        {
+            new AvailableMoveDto(Column.Free, Row.Sixes, 30),
+            new AvailableMoveDto(Column.Downward, Row.Sixes, 30)
+        };
+
+        var move = _advisor.ChooseMove(game, moves);
+
+        move!.Column.Should().Be(Column.Downward);
+    }
+
+    [Fact]
+    public void ChooseMove_ValuesMaxMinSpread()
+    {
+        var columns = new[] { Column.Downward, Column.Free };
+        var filled = new Dictionary<(Column, Row), int>
+        {
+            [(Column.Downward, Row.Ones)] = 5,
+            [(Column.Free, Row.Ones)] = 5
+        };
+        var game = CreateGame(
+            3,
+            columns,
+            null,
+            filled,
+            (1, false), (1, false), (1, false), (1, false), (1, false), (1, false));
+        var moves = new[]
+        {
+            new AvailableMoveDto(Column.Downward, Row.Max, 5),
+            new AvailableMoveDto(Column.Free, Row.Min, 5)
+        };
+
+        var move = _advisor.ChooseMove(game, moves);
+
+        move.Should().BeEquivalentTo(new AvailableMoveDto(Column.Free, Row.Min, 5));
+    }
+
+    [Fact]
+    public void ShouldFinishTurn_LocksFirstRollStraight()
+    {
+        var game = CreateGame(1, null, null, (1, false), (2, false), (3, false), (4, false), (5, false), (6, false));
+        var moves = new[]
+        {
+            new AvailableMoveDto(Column.Free, Row.Ones, 1),
+            new AvailableMoveDto(Column.Downward, Row.Straight, 66)
+        };
+
+        bool finish = _advisor.ShouldFinishTurn(game, moves);
+
+        finish.Should().BeTrue();
+    }
+
+    [Fact]
+    public void ShouldFinishTurn_DoesNotLockWeakEarlyMove()
+    {
+        var game = CreateGame(1, null, null, (1, false), (1, false), (2, false), (2, false), (3, false), (6, false));
+        var moves = new[]
+        {
+            new AvailableMoveDto(Column.Free, Row.Threes, 3),
+            new AvailableMoveDto(Column.Downward, Row.Ones, 2)
+        };
+
+        bool finish = _advisor.ShouldFinishTurn(game, moves);
+
+        finish.Should().BeFalse();
+    }
+
+    [Fact]
+    public void ChooseMove_UsesLearnedExperienceWhenHeuristicIsTied()
+    {
+        var favored = new AvailableMoveDto(Column.Upward, Row.Sixes, 30);
+        var advisor = new BotAdvisor(GameRuleset.Default, new FavoringExperienceStore(BotExperienceKeys.Move(favored)));
+        var columns = Enum.GetValues<Column>().Where(column => column != Column.Maximum).ToList();
+        var game = CreateGame(3, columns, null, (6, false), (6, false), (6, false), (6, false), (6, false), (6, false));
+        var moves = new[]
+        {
+            new AvailableMoveDto(Column.Downward, Row.Sixes, 30),
+            favored
+        };
+
+        var move = advisor.ChooseMove(game, moves);
+
+        move.Should().BeEquivalentTo(favored);
+    }
+
     private static GameDto CreateGame(
         int rollNumber,
         IReadOnlyList<Column>? columns,
@@ -182,5 +274,26 @@ public class BotAdvisorTests
             !dice.Any(die => die.Held),
             false,
             GameResult.InProgress);
+    }
+
+    private sealed class FavoringExperienceStore : IBotExperienceStore
+    {
+        private readonly string _favoredKey;
+
+        public FavoringExperienceStore(string favoredKey)
+        {
+            _favoredKey = favoredKey;
+        }
+
+        public BotExperienceValue? Get(BotDecisionKind kind, string stateKey, string moveKey) =>
+            kind == BotDecisionKind.Move && moveKey == _favoredKey
+                ? new BotExperienceValue(40, 1, DateTime.UtcNow)
+                : null;
+
+        public void RememberDecision(BotDecisionRecord decision)
+        {
+        }
+
+        public Task CompleteGameAsync(Guid gameId, double reward) => Task.CompletedTask;
     }
 }

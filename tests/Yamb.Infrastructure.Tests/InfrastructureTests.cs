@@ -8,6 +8,7 @@ using Yamb.Domain.Enums;
 using Yamb.Domain.Rules;
 using Yamb.Domain.Snapshots;
 using Yamb.Domain.ValueObjects;
+using Yamb.Infrastructure.Learning;
 using Yamb.Infrastructure.Persistence;
 
 namespace Yamb.Infrastructure.Tests;
@@ -206,5 +207,38 @@ public class EfGameRepositoryTests
 
         (await repo.GetByIdAsync(game.Id)).Should().BeNull();
         (await repo.ListSummariesAsync()).Should().BeEmpty();
+    }
+}
+
+public class JsonBotExperienceStoreTests
+{
+    [Fact]
+    public async Task CompleteGameAsync_PersistsDecisionReward()
+    {
+        string directory = Path.Combine(Path.GetTempPath(), "yamb-bot-experience-tests");
+        Directory.CreateDirectory(directory);
+        string path = Path.Combine(directory, $"{Guid.NewGuid():N}.json");
+        Guid gameId = Guid.NewGuid();
+        const BotDecisionKind kind = BotDecisionKind.Move;
+        const string state = "state";
+        const string move = "move";
+
+        try
+        {
+            var store = new JsonBotExperienceStore(path);
+            store.RememberDecision(new BotDecisionRecord(gameId, kind, state, move, DateTime.UtcNow));
+            await store.CompleteGameAsync(gameId, 0.8);
+
+            var reloaded = new JsonBotExperienceStore(path);
+            var value = reloaded.Get(kind, state, move);
+
+            value.Should().NotBeNull();
+            value!.Count.Should().Be(1);
+            value.Mean.Should().BeApproximately(0.8, 0.0001);
+        }
+        finally
+        {
+            if (File.Exists(path)) File.Delete(path);
+        }
     }
 }
