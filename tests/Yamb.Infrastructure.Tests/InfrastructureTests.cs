@@ -235,6 +235,45 @@ public class JsonBotExperienceStoreTests
             value.Should().NotBeNull();
             value!.Count.Should().Be(1);
             value.Mean.Should().BeApproximately(0.8, 0.0001);
+            value.Games.Should().Be(1);
+            reloaded.GamesCompleted.Should().Be(1);
+        }
+        finally
+        {
+            if (File.Exists(path)) File.Delete(path);
+        }
+    }
+
+    [Fact]
+    public async Task CompleteGameAsync_GroupsRepeatedDecisionsAndTracksTrainingGrowth()
+    {
+        string directory = Path.Combine(Path.GetTempPath(), "yamb-bot-experience-tests");
+        Directory.CreateDirectory(directory);
+        string path = Path.Combine(directory, $"{Guid.NewGuid():N}.json");
+        Guid firstGame = Guid.NewGuid();
+        Guid secondGame = Guid.NewGuid();
+        const BotDecisionKind kind = BotDecisionKind.Move;
+        const string state = "state";
+        const string move = "move";
+
+        try
+        {
+            var store = new JsonBotExperienceStore(path);
+            store.RememberDecision(new BotDecisionRecord(firstGame, kind, state, move, DateTime.UtcNow));
+            store.RememberDecision(new BotDecisionRecord(firstGame, kind, state, move, DateTime.UtcNow));
+            await store.CompleteGameAsync(firstGame, 1);
+
+            store.RememberDecision(new BotDecisionRecord(secondGame, kind, state, move, DateTime.UtcNow));
+            await store.CompleteGameAsync(secondGame, -1);
+
+            var reloaded = new JsonBotExperienceStore(path);
+            var value = reloaded.Get(kind, state, move);
+
+            value.Should().NotBeNull();
+            value!.Count.Should().Be(3);
+            value.Games.Should().Be(2);
+            value.Mean.Should().BeApproximately(1.0 / 3.0, 0.0001);
+            reloaded.GamesCompleted.Should().Be(2);
         }
         finally
         {

@@ -4,7 +4,8 @@ public enum BotDecisionKind
 {
     Move,
     Hold,
-    Announcement
+    Announcement,
+    StopRolling
 }
 
 public sealed record BotDecisionRecord(
@@ -17,4 +18,5 @@ public sealed record BotDecisionRecord(
 public sealed record BotExperienceValue(
     int Count,
     double Mean,
-    DateTime UpdatedAtUtc);
+    DateTime UpdatedAtUtc,
+    int Games = 0);

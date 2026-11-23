@@ -287,6 +287,31 @@ public class BotAdvisorTests
         move.Should().BeEquivalentTo(favored);
     }
 
+    [Fact]
+    public void BotExperienceKeys_State_GeneralizesAcrossEquivalentDiceShapes()
+    {
+        var first = CreateGame(3, null, null, (1, false), (1, false), (2, false), (3, false), (4, false), (4, false));
+        var second = CreateGame(3, null, null, (1, false), (1, false), (2, false), (5, false), (6, false), (6, false));
+
+        BotExperienceKeys.State(first).Should().Be(BotExperienceKeys.State(second));
+    }
+
+    [Fact]
+    public void ShouldFinishTurn_UsesLearnedStopExperience()
+    {
+        var advisor = new BotAdvisor(
+            GameRuleset.Default,
+            new FavoringExperienceStore(BotExperienceKeys.Stop(true), BotDecisionKind.StopRolling));
+        var game = CreateGame(1, null, null, (1, false), (1, false), (2, false), (2, false), (3, false), (6, false));
+        var moves = new[]
+        {
+            new AvailableMoveDto(Column.Free, Row.Threes, 3),
+            new AvailableMoveDto(Column.Downward, Row.Ones, 2)
+        };
+
+        advisor.ShouldFinishTurn(game, moves).Should().BeTrue();
+    }
+
     private static GameDto CreateGame(
         int rollNumber,
         IReadOnlyList<Column>? columns,
@@ -340,15 +365,19 @@ public class BotAdvisorTests
     private sealed class FavoringExperienceStore : IBotExperienceStore
     {
         private readonly string _favoredKey;
+        private readonly BotDecisionKind _favoredKind;
 
-        public FavoringExperienceStore(string favoredKey)
+        public FavoringExperienceStore(string favoredKey, BotDecisionKind favoredKind = BotDecisionKind.Move)
         {
             _favoredKey = favoredKey;
+            _favoredKind = favoredKind;
         }
 
+        public int GamesCompleted => 50;
+
         public BotExperienceValue? Get(BotDecisionKind kind, string stateKey, string moveKey) =>
-            kind == BotDecisionKind.Move && moveKey == _favoredKey
-                ? new BotExperienceValue(40, 1, DateTime.UtcNow)
+            kind == _favoredKind && moveKey == _favoredKey
+                ? new BotExperienceValue(40, 1, DateTime.UtcNow, 12)
                 : null;
 
         public void RememberDecision(BotDecisionRecord decision)

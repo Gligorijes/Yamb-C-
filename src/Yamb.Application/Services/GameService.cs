@@ -139,7 +139,8 @@ public sealed class GameService : IGameService
         {
             int human = game.Players[0].Scoresheet.FinalScore ?? 0;
             int bot = game.Players[1].Scoresheet.FinalScore ?? 0;
-            double reward = Math.Clamp((bot - human) / 150.0, -1, 1);
+            double outcome = bot > human ? 0.2 : bot < human ? -0.2 : 0;
+            double reward = Math.Clamp((bot - human) / 120.0 + outcome, -1, 1);
             try
             {
                 await _experience.CompleteGameAsync(game.Id, reward);

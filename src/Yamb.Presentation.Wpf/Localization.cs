@@ -187,6 +187,8 @@ public static class Localization
         ["L.Settings.DiceSix"] = ("6", "6"),
         ["L.Settings.DiceUnit"] = ("kockica", "dice"),
         ["L.Settings.Size"] = ("VELIČINA KOCKICA", "DICE SIZE"),
+        ["L.Settings.AnimationFps"] = ("BRZINA ANIMACIJA (FPS)", "ANIMATION FPS"),
+        ["L.Settings.AnimationFpsHint"] = ("Broj frejmova u sekundi za sve animacije (24–999).", "Frames per second for all animations (24-999)."),
         ["L.Settings.Preview"] = ("Primer prikaza kockica.", "Preview of the dice."),
         ["L.Settings.StraightInfo"] = ("Kenta: iz 1. bacanja 66 poena, iz 2. bacanja 56 poena, iz 3. bacanja 46 poena.", "Straight: 66 points from the first roll, 56 from the second, 46 from the third."),
         ["L.Settings.Reset"] = ("Vrati podrazumevano", "Reset to defaults"),

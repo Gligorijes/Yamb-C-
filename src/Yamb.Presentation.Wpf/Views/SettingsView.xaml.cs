@@ -233,6 +233,8 @@ public partial class SettingsView : UserControl
         DiceSixRadio.IsChecked = WpfSettings.DiceCount == 6;
         SizeSlider.Value = WpfSettings.DieSize;
         SizeText.Text = $"{(int)WpfSettings.DieSize} px";
+        AnimationFpsSlider.Value = WpfSettings.AnimationFps;
+        AnimationFpsText.Text = $"{WpfSettings.AnimationFps} fps";
     }
 
     private void SaveSettings()
@@ -309,6 +311,15 @@ public partial class SettingsView : UserControl
         if (SizeText is not null) SizeText.Text = $"{(int)WpfSettings.DieSize} px";
         SaveSettings();
         RenderPreview();
+    }
+
+    private void OnAnimationFpsChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+    {
+        if (!_loaded) return;
+
+        WpfSettings.AnimationFps = (int)Math.Round(e.NewValue);
+        if (AnimationFpsText is not null) AnimationFpsText.Text = $"{WpfSettings.AnimationFps} fps";
+        SaveSettings();
     }
 
     private void RenderPreview()

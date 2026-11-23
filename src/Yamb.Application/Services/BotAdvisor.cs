@@ -56,8 +56,22 @@ public sealed class BotAdvisor : IBotAdvisor
         var plan = CreatePlan(game, moves, rules, game.AnnouncedRow);
         var counts = ToCounts(game.Dice.Dice.Select(die => die.Value));
         var choice = plan.BestMove(counts, game.RollNumber, game.AllDiceThrownThisRoll);
-        return choice is not null &&
-               plan.IsPremiumWrite(choice.Move, counts, game.RollNumber, game.AllDiceThrownThisRoll);
+        var stateKey = BotExperienceKeys.State(game);
+        double premium = choice is null
+            ? 0
+            : plan.PremiumValue(choice.Move, counts, game.RollNumber, game.AllDiceThrownThisRoll);
+        double finishValue = premium +
+            ExperienceBonus(BotDecisionKind.StopRolling, stateKey, BotExperienceKeys.Stop(true));
+        double continueValue =
+            ExperienceBonus(BotDecisionKind.StopRolling, stateKey, BotExperienceKeys.Stop(false));
+        bool finish = premium > 0
+            ? finishValue >= continueValue
+            : finishValue > continueValue + 0.75;
+        Remember(
+            game,
+            BotDecisionKind.StopRolling,
+            BotExperienceKeys.Stop(finish));
+        return finish;
     }
 
     public Row? ChooseAnnouncement(
@@ -71,8 +85,10 @@ public sealed class BotAdvisor : IBotAdvisor
         var rules = RulesFor(game);
         var engine = new ScoringEngine(rules);
         var counts = ToCounts(game.Dice.Dice.Select(die => die.Value));
+        var stateKey = BotExperienceKeys.State(game);
         var baseline = CreatePlan(game, moves, rules, null)
-            .ExpectedValue(counts, game.RollNumber, game.AllDiceThrownThisRoll);
+            .ExpectedValue(counts, game.RollNumber, game.AllDiceThrownThisRoll) +
+            ExperienceBonus(BotDecisionKind.Announcement, stateKey, BotExperienceKeys.Announcement(null));
 
         var shortlist = candidates
             .Where(candidate => !IsFilled(game, candidate.Column, candidate.Row))
@@ -85,7 +101,8 @@ public sealed class BotAdvisor : IBotAdvisor
         foreach (var candidate in shortlist)
         {
             double value = CreatePlan(game, new[] { candidate }, rules, candidate.Row)
-                .ExpectedValue(counts, game.RollNumber, game.AllDiceThrownThisRoll);
+                .ExpectedValue(counts, game.RollNumber, game.AllDiceThrownThisRoll) +
+                ExperienceBonus(BotDecisionKind.Announcement, stateKey, BotExperienceKeys.Announcement(candidate.Row));
             if (value > bestValue)
             {
                 bestValue = value;
@@ -433,16 +450,14 @@ public sealed class BotAdvisor : IBotAdvisor
         return priority;
     }
 
-    private double TargetedHoldPriority(
+    private static double TargetedHoldPriority(
         int[] kept,
-        IReadOnlyList<AvailableMoveDto> candidates,
-        string stateKey)
+        IReadOnlyList<AvailableMoveDto> candidates)
     {
         int maxCount = kept.Max();
         int maxFace = Array.IndexOf(kept, maxCount) + 1;
         int distinct = kept.Count(value => value > 0);
         double priority = HoldPriority(kept);
-        priority += ExperienceBonus(BotDecisionKind.Hold, stateKey, BotExperienceKeys.Hold(kept));
 
         if (candidates.Any(move => move.Row == Row.Straight))
         {
@@ -469,8 +484,24 @@ public sealed class BotAdvisor : IBotAdvisor
         var value = _experience.Get(kind, stateKey, moveKey);
         if (value is null || value.Count <= 0) return 0;
 
-        double confidence = value.Count / (value.Count + 12.0);
-        return Math.Clamp(4.0 * confidence * value.Mean, -1.5, 1.5);
+        double sampleConfidence = value.Count / (value.Count + 8.0);
+        double entryConfidence = value.Games > 0
+            ? Math.Log(1 + value.Games) / Math.Log(9.0)
+            : sampleConfidence;
+        double training = Math.Clamp(
+            Math.Log(1 + Math.Max(0, _experience.GamesCompleted)) / Math.Log(17.0),
+            0,
+            2);
+        double kindWeight = kind switch
+        {
+            BotDecisionKind.Move => 1.0,
+            BotDecisionKind.Hold => 0.85,
+            BotDecisionKind.Announcement => 1.2,
+            BotDecisionKind.StopRolling => 1.1,
+            _ => 1.0
+        };
+        double confidence = Math.Min(sampleConfidence, entryConfidence) * training * kindWeight;
+        return Math.Clamp(6.0 * confidence * value.Mean, -4.0, 4.0);
     }
 
     private static string CountKey(int[] counts) => string.Join('.', counts);
@@ -614,8 +645,17 @@ public sealed class BotAdvisor : IBotAdvisor
             int rollNumber,
             bool allThrown)
         {
+            return PremiumValue(move, counts, rollNumber, allThrown) > 0;
+        }
+
+        public double PremiumValue(
+            AvailableMoveDto move,
+            int[] counts,
+            int rollNumber,
+            bool allThrown)
+        {
             var scores = RowScores(counts, rollNumber, _engine, _rules);
-            return LockPremium(move, scores[(int)move.Row], rollNumber) > 0;
+            return LockPremium(move, scores[(int)move.Row], rollNumber);
         }
 
         public HoldDecision ChooseHold(int[] counts, int rollNumber, bool allThrown)
@@ -655,7 +695,7 @@ public sealed class BotAdvisor : IBotAdvisor
             int total = Sum(counts);
             var choices = SubCounts(counts)
                 .Select(kept => (int[])kept.Clone())
-                .OrderByDescending(kept => _owner.TargetedHoldPriority(kept, _candidates, _stateKey))
+                .OrderByDescending(kept => TargetedHoldPriority(kept, _candidates))
                 .ThenByDescending(Sum)
                 .ThenBy(CountKey, StringComparer.Ordinal)
                 .Take(HoldLimitFor(rollNumber))
@@ -699,8 +739,7 @@ public sealed class BotAdvisor : IBotAdvisor
                     double premium = LockPremium(immediate.Move, scores[(int)immediate.Move.Row], rollNumber);
                     if (premium > 0)
                     {
-                        double locked = immediate.Value + premium +
-                            _owner.ExperienceBonus(BotDecisionKind.Move, _stateKey, BotExperienceKeys.Move(immediate.Move));
+                        double locked = immediate.Value + premium;
                         if (locked > best) best = locked;
                     }
                 }
@@ -764,17 +803,17 @@ public sealed class BotAdvisor : IBotAdvisor
                     score != _engine.GetMaximum(move.Row))
                     continue;
 
-                    double value = _owner.MoveValue(
-                        _game,
-                        _engine,
-                        move,
-                        score,
-                        BonusDeltaFor(move, score));
-                    value += _owner.ExperienceBonus(
-                        BotDecisionKind.Move,
-                        _stateKey,
-                        BotExperienceKeys.Move(move));
-                    if (best is null || value > best.Value)
+                double value = _owner.MoveValue(
+                    _game,
+                    _engine,
+                    move,
+                    score,
+                    BonusDeltaFor(move, score));
+                value += _owner.ExperienceBonus(
+                    BotDecisionKind.Move,
+                    _stateKey,
+                    BotExperienceKeys.Move(move));
+                if (best is null || value > best.Value)
                     best = new MoveChoice(value, move);
             }
 

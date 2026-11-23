@@ -1,6 +1,7 @@
 ﻿<UserControl x:Class="Yamb.Presentation.Wpf.Views.GameView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:local="clr-namespace:Yamb.Presentation.Wpf"
              FontFamily="Segoe UI"
              Focusable="True">
     <Grid>
@@ -56,7 +57,7 @@
                                 <Ellipse.Triggers>
                                     <EventTrigger RoutedEvent="FrameworkElement.Loaded">
                                         <BeginStoryboard>
-                                            <Storyboard Timeline.DesiredFrameRate="165" RepeatBehavior="Forever">
+                                            <Storyboard Timeline.DesiredFrameRate="{x:Static local:WpfSettings.AnimationFps}" RepeatBehavior="Forever">
                                                 <DoubleAnimationUsingKeyFrames Storyboard.TargetProperty="Opacity"
                                                                                Duration="0:0:1.2">
                                                     <DiscreteDoubleKeyFrame KeyTime="0:0:0" Value="0.25" />
@@ -72,7 +73,7 @@
                                 <Ellipse.Triggers>
                                     <EventTrigger RoutedEvent="FrameworkElement.Loaded">
                                         <BeginStoryboard>
-                                            <Storyboard Timeline.DesiredFrameRate="165" RepeatBehavior="Forever" BeginTime="0:0:0.15">
+                                            <Storyboard Timeline.DesiredFrameRate="{x:Static local:WpfSettings.AnimationFps}" RepeatBehavior="Forever" BeginTime="0:0:0.15">
                                                 <DoubleAnimationUsingKeyFrames Storyboard.TargetProperty="Opacity"
                                                                                Duration="0:0:1.2">
                                                     <DiscreteDoubleKeyFrame KeyTime="0:0:0" Value="0.25" />
@@ -88,7 +89,7 @@
                                 <Ellipse.Triggers>
                                     <EventTrigger RoutedEvent="FrameworkElement.Loaded">
                                         <BeginStoryboard>
-                                            <Storyboard Timeline.DesiredFrameRate="165" RepeatBehavior="Forever" BeginTime="0:0:0.3">
+                                            <Storyboard Timeline.DesiredFrameRate="{x:Static local:WpfSettings.AnimationFps}" RepeatBehavior="Forever" BeginTime="0:0:0.3">
                                                 <DoubleAnimationUsingKeyFrames Storyboard.TargetProperty="Opacity"
                                                                                Duration="0:0:1.2">
                                                     <DiscreteDoubleKeyFrame KeyTime="0:0:0" Value="0.25" />

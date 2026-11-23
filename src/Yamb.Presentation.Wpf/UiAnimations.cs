@@ -6,8 +6,6 @@ namespace Yamb.Presentation.Wpf;
 
 public static class UiAnimations
 {
-    private const int DesiredFrameRate = 165;
-
     public static void FadeIn(FrameworkElement element, double seconds = 0.2)
     {
         element.Opacity = 1;
@@ -123,9 +121,9 @@ public static class UiAnimations
         scale.BeginAnimation(ScaleTransform.ScaleYProperty, growY);
     }
 
-    private static T AtDisplayRate<T>(T timeline) where T : Timeline
+    public static T AtDisplayRate<T>(T timeline) where T : Timeline
     {
-        timeline.SetValue(Timeline.DesiredFrameRateProperty, DesiredFrameRate);
+        timeline.SetValue(Timeline.DesiredFrameRateProperty, WpfSettings.AnimationFps);
         return timeline;
     }
 }

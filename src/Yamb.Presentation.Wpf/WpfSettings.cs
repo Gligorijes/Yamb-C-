@@ -18,6 +18,10 @@ public enum AppLanguage
 
 public static class WpfSettings
 {
+    public const int MinAnimationFps = 24;
+    public const int MaxAnimationFps = 999;
+    public const int DefaultAnimationFps = 165;
+
     private static readonly string FilePath = Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
         "Yamb",
@@ -34,6 +38,14 @@ public static class WpfSettings
     public static AppLanguage Language { get; set; } = AppLanguage.Serbian;
 
     public static bool AutoCalculate { get; set; } = true;
+
+    private static int _animationFps = DefaultAnimationFps;
+
+    public static int AnimationFps
+    {
+        get => _animationFps;
+        set => _animationFps = Math.Clamp(value, MinAnimationFps, MaxAnimationFps);
+    }
 
     public static string? LastError { get; private set; }
 
@@ -55,6 +67,7 @@ public static class WpfSettings
                 : AppTheme.Dark;
             Language = Enum.TryParse<AppLanguage>(data.Language, out var language) ? language : AppLanguage.Serbian;
             AutoCalculate = data.AutoCalculate ?? true;
+            AnimationFps = data.AnimationFps ?? DefaultAnimationFps;
         }
         catch (Exception ex) when (ex is IOException or JsonException or UnauthorizedAccessException)
         {
@@ -78,7 +91,8 @@ public static class WpfSettings
                 DiceCount = DiceCount,
                 Theme = Theme.ToString(),
                 Language = Language.ToString(),
-                AutoCalculate = AutoCalculate
+                AutoCalculate = AutoCalculate,
+                AnimationFps = AnimationFps
             };
 
             tempPath = FilePath + ".tmp";
@@ -107,6 +121,7 @@ public static class WpfSettings
         Theme = AppTheme.Dark;
         Language = AppLanguage.Serbian;
         AutoCalculate = true;
+        AnimationFps = DefaultAnimationFps;
     }
 
     private sealed class SettingsData
@@ -122,5 +137,7 @@ public static class WpfSettings
         public string Language { get; set; } = "Serbian";
 
         public bool? AutoCalculate { get; set; }
+
+        public int? AnimationFps { get; set; }
     }
 }

@@ -26,6 +26,8 @@ public sealed class JsonBotExperienceStore : IBotExperienceStore
             "bot-experience.json");
     }
 
+    public int GamesCompleted { get; private set; }
+
     public BotExperienceValue? Get(BotDecisionKind kind, string stateKey, string moveKey)
     {
         EnsureLoaded();
@@ -47,22 +49,28 @@ public sealed class JsonBotExperienceStore : IBotExperienceStore
     public async Task CompleteGameAsync(Guid gameId, double reward)
     {
         EnsureLoaded();
+        GamesCompleted++;
+
         if (_pending.TryRemove(gameId, out var decisions))
         {
             double labeled = Math.Clamp(double.IsFinite(reward) ? reward : 0, -1, 1);
-            foreach (var decision in decisions)
+            DateTime now = DateTime.UtcNow;
+            var grouped = decisions
+                .GroupBy(
+                    decision => BotExperienceKeys.EntryKey(decision.Kind, decision.StateKey, decision.MoveKey),
+                    StringComparer.Ordinal);
+
+            foreach (var group in grouped)
             {
-                string key = BotExperienceKeys.EntryKey(decision.Kind, decision.StateKey, decision.MoveKey);
+                int added = group.Count();
                 _entries.AddOrUpdate(
-                    key,
-                    _ => new BotExperienceValue(1, labeled, DateTime.UtcNow),
+                    group.Key,
+                    _ => new BotExperienceValue(added, labeled, now, 1),
                     (_, old) =>
                     {
-                        int count = old.Count + 1;
-                        return new BotExperienceValue(
-                            count,
-                            old.Mean + (labeled - old.Mean) / count,
-                            DateTime.UtcNow);
+                        int count = old.Count + added;
+                        double mean = count == 0 ? 0 : (old.Mean * old.Count + labeled * added) / count;
+                        return new BotExperienceValue(count, mean, now, old.Games + 1);
                     });
             }
         }
@@ -82,14 +90,17 @@ public sealed class JsonBotExperienceStore : IBotExperienceStore
             {
                 if (!File.Exists(_filePath)) return;
                 var data = JsonSerializer.Deserialize<FileData>(File.ReadAllText(_filePath));
-                if (data?.Entries is null) return;
+                if (data?.Entries is null || data.Version < 3) return;
+
+                GamesCompleted = Math.Max(0, data.GamesCompleted);
                 foreach (var pair in data.Entries)
                 {
                     if (pair.Value is null) continue;
                     _entries[pair.Key] = new BotExperienceValue(
                         Math.Max(0, pair.Value.Count),
                         double.IsFinite(pair.Value.Mean) ? pair.Value.Mean : 0,
-                        pair.Value.UpdatedAtUtc);
+                        pair.Value.UpdatedAtUtc,
+                        Math.Max(0, pair.Value.Games ?? 0));
                 }
             }
             catch (Exception ex) when (ex is IOException or JsonException or UnauthorizedAccessException)
@@ -101,8 +112,11 @@ public sealed class JsonBotExperienceStore : IBotExperienceStore
     private void Prune()
     {
         if (_entries.Count <= MaxEntries) return;
+        var cutoff = DateTime.UtcNow.AddDays(-45);
         foreach (var entry in _entries
-                     .OrderBy(pair => pair.Value.UpdatedAtUtc)
+                     .OrderBy(pair => pair.Value.Games + pair.Value.Count / 20.0)
+                     .ThenBy(pair => pair.Value.UpdatedAtUtc < cutoff ? 0 : 1)
+                     .ThenBy(pair => pair.Value.UpdatedAtUtc)
                      .Take(_entries.Count - MaxEntries))
         {
             _entries.TryRemove(entry.Key, out _);
@@ -120,12 +134,15 @@ public sealed class JsonBotExperienceStore : IBotExperienceStore
 
                 var data = new FileData
                 {
+                    Version = 3,
+                    GamesCompleted = GamesCompleted,
                     Entries = _entries.ToDictionary(
                         pair => pair.Key,
                         pair => (EntryData?)new EntryData
                         {
                             Count = pair.Value.Count,
                             Mean = pair.Value.Mean,
+                            Games = pair.Value.Games,
                             UpdatedAtUtc = pair.Value.UpdatedAtUtc
                         })
                 };
@@ -142,7 +159,9 @@ public sealed class JsonBotExperienceStore : IBotExperienceStore
 
     private sealed class FileData
     {
-        public int Version { get; set; } = 2;
+        public int Version { get; set; } = 3;
+
+        public int GamesCompleted { get; set; }
 
         public Dictionary<string, EntryData?> Entries { get; set; } = new();
     }
@@ -152,6 +171,8 @@ public sealed class JsonBotExperienceStore : IBotExperienceStore
         public int Count { get; set; }
 
         public double Mean { get; set; }
+
+        public int? Games { get; set; }
 
         public DateTime UpdatedAtUtc { get; set; }
     }

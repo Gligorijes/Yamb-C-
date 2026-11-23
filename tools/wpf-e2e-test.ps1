@@ -498,6 +498,20 @@ try {
                 Check 'auto-calculate true persists' ($settingsJson -match '"AutoCalculate":true')
             }
 
+            $animationFps = Wait-El { Find-ById $mainEl 'AnimationFpsSlider' }
+            Check 'animation fps slider present' ($null -ne $animationFps)
+            if ($animationFps) {
+                $range = $animationFps.GetCurrentPattern([System.Windows.Automation.RangeValuePattern]::Pattern)
+                $range.SetValue(999)
+                Start-Sleep -Milliseconds 500
+                $settingsJson = Get-Content -Raw (Join-Path $dataDir 'settings.json')
+                Check 'animation fps persists' ($settingsJson -match '"AnimationFps":999')
+                $range.SetValue(165)
+                Start-Sleep -Milliseconds 500
+                $settingsJson = Get-Content -Raw (Join-Path $dataDir 'settings.json')
+                Check 'animation fps default restores' ($settingsJson -match '"AnimationFps":165')
+            }
+
             Invoke-ById $mainEl 'SettingsBack'
             Check 'english menu title shown' ($null -ne (Wait-El { Find-In $mainEl 'Ready for a game?' }))
             Invoke-ById $mainEl 'MenuSettings'
@@ -586,7 +600,7 @@ try {
     Invoke-ById $mainEl 'HelpPrev'
     Check 'help page goes back' (Wait-Text $mainEl 'HelpPage' '1/5')
     $versionEl = Wait-El { Find-ById $mainEl 'HelpVersion' }
-    Check 'help shows build version' ($versionEl -and $versionEl.Current.Name -match '1\.0\.0-alpha\.10' -and $versionEl.Current.Name -match 'build 10')
+    Check 'help shows build version' ($versionEl -and $versionEl.Current.Name -match '1\.0\.0-alpha\.11' -and $versionEl.Current.Name -match 'build 11')
     for ($i = 0; $i -lt 4; $i++) {
         Invoke-ById $mainEl 'HelpNext'
         Start-Sleep -Milliseconds 250
@@ -599,7 +613,7 @@ try {
     $exited = $p.WaitForExit(15000)
     Check 'app exits cleanly' $exited
     $finalSettings = if (Test-Path (Join-Path $dataDir 'settings.json')) { Get-Content -Raw (Join-Path $dataDir 'settings.json') } else { '' }
-    Check 'settings saved on exit' ($finalSettings -match '"Language":"Serbian"' -and $finalSettings -match '"AutoCalculate":true')
+    Check 'settings saved on exit' ($finalSettings -match '"Language":"Serbian"' -and $finalSettings -match '"AutoCalculate":true' -and $finalSettings -match '"AnimationFps":165')
     Check 'dice count saved on exit' ($finalSettings -match '"DiceCount":5')
 
     $passed = $true

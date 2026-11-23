@@ -18,7 +18,6 @@ namespace Yamb.Presentation.Wpf.Views;
 public partial class GameView : UserControl
 {
     private const int MaxRollsPerTurn = 3;
-    private const int DesiredFrameRate = 165;
 
     private static readonly IReadOnlyDictionary<Column, string> ColumnHeaders =
         new Dictionary<Column, string>
@@ -276,7 +275,7 @@ public partial class GameView : UserControl
             int delay = i * 28;
             double startAngle = die.IsHeld ? 0 : _random.NextDouble() * 30 - 15;
 
-            var drop = AtDisplayRate(new DoubleAnimation(-12, 0, TimeSpan.FromMilliseconds(300))
+            var drop = UiAnimations.AtDisplayRate(new DoubleAnimation(-12, 0, TimeSpan.FromMilliseconds(300))
             {
                 BeginTime = TimeSpan.FromMilliseconds(delay),
                 EasingFunction = ease,
@@ -284,7 +283,7 @@ public partial class GameView : UserControl
             });
             translate.BeginAnimation(TranslateTransform.YProperty, drop);
 
-            var spin = AtDisplayRate(new DoubleAnimation(startAngle, 0, TimeSpan.FromMilliseconds(300))
+            var spin = UiAnimations.AtDisplayRate(new DoubleAnimation(startAngle, 0, TimeSpan.FromMilliseconds(300))
             {
                 BeginTime = TimeSpan.FromMilliseconds(delay),
                 EasingFunction = ease,
@@ -292,7 +291,7 @@ public partial class GameView : UserControl
             });
             rotate.BeginAnimation(RotateTransform.AngleProperty, spin);
 
-            var bounce = AtDisplayRate(new DoubleAnimationUsingKeyFrames
+            var bounce = UiAnimations.AtDisplayRate(new DoubleAnimationUsingKeyFrames
             {
                 BeginTime = TimeSpan.FromMilliseconds(delay),
                 FillBehavior = FillBehavior.Stop
@@ -309,7 +308,7 @@ public partial class GameView : UserControl
             scale.BeginAnimation(ScaleTransform.ScaleXProperty, bounce);
             scale.BeginAnimation(ScaleTransform.ScaleYProperty, bounce.Clone());
 
-            var opacity = AtDisplayRate(new DoubleAnimation(
+            var opacity = UiAnimations.AtDisplayRate(new DoubleAnimation(
                 die.IsHeld ? 0.7 : 0.35,
                 die.IsHeld ? 0.55 : 1,
                 TimeSpan.FromMilliseconds(220))
@@ -1465,12 +1464,6 @@ public partial class GameView : UserControl
         AutomationProperties.SetName(button, $"{DieName(dieIndex)}: {die.Value}|{die.IsHeld}");
         button.Click += async (_, _) => await OnDieClick(playerIndex, dieIndex);
         return button;
-    }
-
-    private static T AtDisplayRate<T>(T timeline) where T : Timeline
-    {
-        timeline.SetValue(Timeline.DesiredFrameRateProperty, DesiredFrameRate);
-        return timeline;
     }
 
     private static Brush MakeAccentTint(Brush accent)

@@ -4,8 +4,8 @@ namespace Yamb.Presentation.Wpf;
 
 public static class BuildInfo
 {
-    public const int BuildNumber = 10;
-    public const string ReleaseDate = "2026-11-20";
+    public const int BuildNumber = 11;
+    public const string ReleaseDate = "2026-11-24";
 
     public static string Version { get; } = ReadVersion();
 
@@ -21,7 +21,7 @@ public static class BuildInfo
             .InformationalVersion;
 
         if (string.IsNullOrWhiteSpace(informational))
-            return "1.0.0-alpha.10";
+            return "1.0.0-alpha.11";
 
         int metadataIndex = informational.IndexOf('+');
         return metadataIndex >= 0 ? informational[..metadataIndex] : informational;

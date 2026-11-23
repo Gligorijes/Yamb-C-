@@ -11,6 +11,8 @@ public sealed class NullBotExperienceStore : IBotExperienceStore
     {
     }
 
+    public int GamesCompleted => 0;
+
     public BotExperienceValue? Get(BotDecisionKind kind, string stateKey, string moveKey) => null;
 
     public void RememberDecision(BotDecisionRecord decision)

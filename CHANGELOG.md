@@ -1,5 +1,10 @@
 # Istorija verzija / Build history
 
+## [1.0.0-alpha.11] - 2026-11-24
+- Bot učenje je profesionalizovano: sada generalizuje slične pozicije umesto tačnih snimaka table, prati broj partija po naučenoj odluci i sve više veruje iskustvu kako se igra više partija.
+- Bot sada uči i kada da završi potez, pored izbora poteza, zadržavanja kockica i najave; nagrada iz završene partije sada jače razlikuje pobedu i poraz.
+- Dodat je slider za brzinu animacija u podešavanjima (24–999 fps, podrazumevano 165) koji se primenjuje na sve animacije i čuva se između pokretanja.
+
 ## [1.0.0-alpha.10] - 2026-11-20
 - Bot sada odbija slabije kombinacije ako ima bolju alternativu: Minimum iznad 9, Maksimum ispod 26, Ful ispod 48 i rani Triling ispod 32 uzimaju se samo kada zaista nema boljeg poteza.
 - Animacije sada rade sa željenom frekvencijom od 165 fps, uklonjeno je nepotrebno kašnjenje posle bacanja i senka na privremenim kockama, a kocke se ne rekonstruišu kad se nisu promenile.
